@@ -1,19 +1,18 @@
 #!/bin/bash
 set -e
 
-SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ -f "${SCRIPT_PATH}/.version.sh" ]; then
   # shellcheck source=.version.sh
-	source "${SCRIPT_PATH}/.version.sh"
+  source "${SCRIPT_PATH}/.version.sh"
 else
-	VERSION="UNKNOWN VERSION"
+  VERSION="UNKNOWN VERSION"
 fi
 
 echo "Release scripts (hotfix-start, version: ${VERSION})"
 
-if [ $# -ne 1 ]
-then
+if [ $# -ne 1 ]; then
   echo 'Usage: hotfix_start.sh <hotfix-version>'
   echo 'For example:'
   echo 'hotfix_start.sh 0.2.1'
@@ -27,11 +26,11 @@ HOTFIX_SNAPSHOT_VERSION="${HOTFIX_VERSION}-SNAPSHOT"
 RELEASE_VERSION=${HOTFIX_VERSION}
 
 if [ -f "${SCRIPT_PATH}/.common-util.sh" ]; then
-	# shellcheck source=.common-util.sh
-	source "${SCRIPT_PATH}/.common-util.sh"
+  # shellcheck source=.common-util.sh
+  source "${SCRIPT_PATH}/.common-util.sh"
 else
-	echo 'Missing file .common-util.sh. Aborting'
-	exit 1
+  echo 'Missing file .common-util.sh. Aborting'
+  exit 1
 fi
 
 unset RELEASE_VERSION
@@ -46,8 +45,7 @@ git checkout -b "${HOTFIX_BRANCH}"
 set_modules_version "${HOTFIX_SNAPSHOT_VERSION}"
 cd "${GIT_REPO_DIR}"
 
-if ! is_workspace_clean
-then
+if ! is_workspace_clean; then
   # commit hotfix versions
   START_HOTFOX_COMMIT_MESSAGE=$(get_start_hotfix_commit_message "${HOTFIX_SNAPSHOT_VERSION}")
   git commit -am "${START_HOTFOX_COMMIT_MESSAGE}"
@@ -55,7 +53,7 @@ else
   echo "Nothing to commit..."
 fi
 
-echo "# Okay, now you've got a new hotfix branch called ${HOTFIX_BRANCH}"
-echo "# Please check if everything looks as expected and then push."
-echo "# Use this command to push your created hotfix-branch:"
-echo "git push --set-upstream ${REMOTE_REPO} ${HOTFIX_BRANCH}"
+git push --set-upstream ${REMOTE_REPO} ${HOTFIX_BRANCH}
+if [ $? -eq 0 ]; then
+  echo "# Okay, now you've got a new hotfix branch called ${HOTFIX_BRANCH}"
+fi
