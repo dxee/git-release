@@ -61,7 +61,7 @@ cd "${GIT_REPO_DIR}"
 ./git-changelog.sh -n -s "${RELEASE_VERSION}"  -f "${RELEASE_VERSION}"
 git add .
 git commit -m 'docs(release): Add CHANGELOG.md'
-echo "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%OK" >> xxxx
+
 if ! is_workspace_clean; then
   # commit release versions
   RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${RELEASE_VERSION}")
@@ -70,9 +70,11 @@ else
   echo "Nothing to commit..."
 fi
 
+git push "${DEVELOP_BRANCH}"
+
 build_release_modules
 cd "${GIT_REPO_DIR}"
-# git reset --hard
+git reset --hard
 
 # merge current develop (over release branch) into master
 git checkout "${MASTER_BRANCH}"
@@ -81,6 +83,7 @@ git merge -X theirs --no-edit "${RELEASE_BRANCH}"
 # create release tag on master
 RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
 RELEASE_TAG_MESSAGE=$(get_release_tag_message "${RELEASE_VERSION}")
+
 git tag -a "${RELEASE_TAG}" -m "${RELEASE_TAG_MESSAGE}"
 
 # merge release into develop
