@@ -54,7 +54,8 @@ cd "${GIT_REPO_DIR}" && git checkout "${DEVELOP_BRANCH}"
 # add changelog
 RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
 
-./git-changelog.sh -n -t "${RELEASE_TAG}"
+"${GIT_REPO_DIR}"/scripts/git-changelog.sh -n -t "${RELEASE_TAG}"
+
 git add .
 git commit -m 'docs(release): Add CHANGELOG.md'
 git push --set-upstream "${REMOTE_REPO}" "${DEVELOP_BRANCH}"
