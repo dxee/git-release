@@ -48,7 +48,19 @@ else
   git push --set-upstream "${REMOTE_REPO}" "${MASTER_BRANCH}"
 fi
 
-git checkout "${DEVELOP_BRANCH}" && git checkout -b "${RELEASE_BRANCH}"
+# checkout develop branch
+git checkout "${DEVELOP_BRANCH}" 
+
+# add changelog
+RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
+
+./git-changelog.sh -n -t "${RELEASE_TAG}"
+git add .
+git commit -m 'docs(release): Add CHANGELOG.md'
+git push --set-upstream "${REMOTE_REPO}" "${DEVELOP_BRANCH}"
+
+# checkout release branch
+git checkout -b "${RELEASE_BRANCH}"
 
 build_snapshot_modules
 cd "${GIT_REPO_DIR}"
@@ -56,13 +68,6 @@ git reset --hard
 
 set_modules_version "${RELEASE_VERSION}"
 cd "${GIT_REPO_DIR}"
-
-RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
-RELEASE_TAG_MESSAGE=$(get_release_tag_message "${RELEASE_VERSION}")
-# add changelog
-./git-changelog.sh -n -s "${RELEASE_TAG}"  -f "${RELEASE_TAG}"
-git add .
-git commit -m 'docs(release): Add CHANGELOG.md'
 
 if ! is_workspace_clean; then
   # commit release versions
@@ -83,6 +88,8 @@ git checkout "${MASTER_BRANCH}"
 git merge -X theirs --no-edit "${RELEASE_BRANCH}"
 
 # create release tag on master
+RELEASE_TAG_MESSAGE=$(get_release_tag_message "${RELEASE_VERSION}")
+
 git tag -a "${RELEASE_TAG}" -m "${RELEASE_TAG_MESSAGE}"
 
 # merge release into develop
