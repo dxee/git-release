@@ -1,5 +1,3 @@
-#!/usr/bin/env bash
-
 DEF_TAG_RECENT="n.n.n"
 GIT_LOG_OPTS=""
 GIT_LOG_AUTHOR="https://rdgit.travelsky.com/users/"
@@ -693,7 +691,7 @@ main() {
     fi
 
     if [[ -z "$changelog" ]]; then
-        changelog="$(ls | egrep 'change|history' -i | head -n1)"
+        changelog="$(ls | egrep 'CHANGELOG.md' -i | head -n1)"
         if [[ -z "$changelog" ]]; then
             changelog="CHANGELOG.md"
         fi

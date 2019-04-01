@@ -60,6 +60,7 @@ cd "${GIT_REPO_DIR}"
 # add changelog
 ./git-changelog.sh -s "${RELEASE_VERSION}"  -f "${RELEASE_VERSION}"
 git add .
+git commit -m 'docs(release): Add CHANGELOG.md'
 
 if ! is_workspace_clean; then
   # commit release versions
