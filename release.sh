@@ -72,7 +72,7 @@ fi
 
 build_release_modules
 cd "${GIT_REPO_DIR}"
-git reset --hard
+# git reset --hard
 
 # merge current develop (over release branch) into master
 git checkout "${MASTER_BRANCH}"
