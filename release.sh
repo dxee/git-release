@@ -57,10 +57,13 @@ git reset --hard
 set_modules_version "${RELEASE_VERSION}"
 cd "${GIT_REPO_DIR}"
 
+# add changelog
+./git-changelog.sh -s "${RELEASE_VERSION}"  -f "${RELEASE_VERSION}"
+git add .
+
 if ! is_workspace_clean; then
   # commit release versions
   RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${RELEASE_VERSION}")
-  ./git-changelog.sh "${RELEASE_VERSION}"
   git commit -am "${RELEASE_COMMIT_MESSAGE}"
 else
   echo "Nothing to commit..."
