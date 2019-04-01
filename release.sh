@@ -49,7 +49,7 @@ else
 fi
 
 # checkout develop branch
-git checkout "${DEVELOP_BRANCH}" 
+cd "${GIT_REPO_DIR}" && git checkout "${DEVELOP_BRANCH}" 
 
 # add changelog
 RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
@@ -60,7 +60,7 @@ git commit -m 'docs(release): Add CHANGELOG.md'
 git push --set-upstream "${REMOTE_REPO}" "${DEVELOP_BRANCH}"
 
 # checkout release branch
-git checkout -b "${RELEASE_BRANCH}"
+cd "${GIT_REPO_DIR}" && git checkout -b "${RELEASE_BRANCH}"
 
 build_snapshot_modules
 cd "${GIT_REPO_DIR}"

@@ -709,13 +709,6 @@ main() {
     else
         cp -f "$tmpfile" "$changelog"
         rm -f "$tmpfile"
-        # Use `eval` to handle GIT_EDITOR which contains space and options,
-        # like ""C:\Program Files (x86)\Notepad++\notepad++.exe" -multiInst ".
-        # Thanks @JanSchulz to inspire me this solution
-        [[ -n "$GIT_EDITOR" ]] && eval $GIT_EDITOR "$changelog"
-        if [[ $? -ne 0 ]]; then
-            _exit
-        fi
     fi
 
     return
