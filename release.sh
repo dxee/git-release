@@ -77,8 +77,6 @@ else
   echo "Nothing to commit..."
 fi
 
-git push "${DEVELOP_BRANCH}"
-
 build_release_modules
 cd "${GIT_REPO_DIR}"
 git reset --hard
