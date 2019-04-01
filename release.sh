@@ -57,8 +57,10 @@ git reset --hard
 set_modules_version "${RELEASE_VERSION}"
 cd "${GIT_REPO_DIR}"
 
+RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
+RELEASE_TAG_MESSAGE=$(get_release_tag_message "${RELEASE_VERSION}")
 # add changelog
-./git-changelog.sh -n -s "${RELEASE_VERSION}"  -f "${RELEASE_VERSION}"
+./git-changelog.sh -n -s "${RELEASE_TAG}"  -f "${RELEASE_TAG}"
 git add .
 git commit -m 'docs(release): Add CHANGELOG.md'
 
@@ -81,9 +83,6 @@ git checkout "${MASTER_BRANCH}"
 git merge -X theirs --no-edit "${RELEASE_BRANCH}"
 
 # create release tag on master
-RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
-RELEASE_TAG_MESSAGE=$(get_release_tag_message "${RELEASE_VERSION}")
-
 git tag -a "${RELEASE_TAG}" -m "${RELEASE_TAG_MESSAGE}"
 
 # merge release into develop
