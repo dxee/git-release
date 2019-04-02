@@ -1,4 +1,11 @@
 
+v1.0.18 (2019-04-02)
+====================
+
+
+## Refactors
+* Refactor hotfix ([@blling](https://github.com/blling) in [3deb2ea](https://github.com/dxee/git-release/commit/3deb2ea))
+
 v1.0.17 (2019-04-02)
 ====================
 
