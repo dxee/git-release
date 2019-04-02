@@ -4,8 +4,8 @@ set -e
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ $# -ne 1 && $# -ne 2 ]]; then
-  echo 'Usage: revert_release.sh <release-version>'
-  echo 'For example: revert_release.sh 0.1.0'
+  echo 'Usage: run-revert-release.sh <release-version>'
+  echo 'For example: run-revert-release.sh 0.1.0'
   exit 2
 fi
 
@@ -21,19 +21,19 @@ fi
 
 RELEASE_BRANCH=$(format_release_branch_name "${RELEASE_VERSION}")
 
-check_local_workspace_state "revert_release"
+check_local_workspace_state "run-revert-release"
 
 if [ $# -eq 1 ]; then
   echo "Warning! This script will delete every local commit on branches ${DEVELOP_BRANCH} and ${MASTER_BRANCH} !"
   echo "Only continue if you know what you are doing with following command:"
-  echo "$ revert_release.sh ${RELEASE_VERSION} --iknowwhatimdoing"
+  echo "$ run-revert-release.sh ${RELEASE_VERSION} --iknowwhatimdoing"
   exit 2
 fi
 
 DOES_HE_KNOW_WHAT_HE_IS_DOING=$2
 if [ ! "${DOES_HE_KNOW_WHAT_HE_IS_DOING}" = '--iknowwhatimdoing' ]; then
-  echo 'Usage: revert_release.sh <release-version>'
-  echo 'For example: revert_release.sh 0.1.0'
+  echo 'Usage: run-revert-release.sh <release-version>'
+  echo 'For example: run-revert-release.sh 0.1.0'
   exit 2
 fi
 

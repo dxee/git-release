@@ -4,8 +4,8 @@ set -e
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ $# -ne 2 ]; then
-  echo 'Usage: release.sh <release-version> <next-snapshot-version>'
-  echo 'For example: release.sh 0.1.0 0.2.0'
+  echo 'Usage: run-release.sh <release-version> <next-snapshot-version>'
+  echo 'For example: run-release.sh 0.1.0 0.2.0'
   exit 2
 fi
 
@@ -45,12 +45,12 @@ git checkout -b "${RELEASE_BRANCH}" "${DEVELOP_BRANCH}"
 # add changelog
 "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
 
-if ! is_workspace_clean; then
+if is_workspace_clean; then
+  echo "Nothing to commit..."
+else
   # commit release versions
   RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${RELEASE_VERSION}")
   git commit -am "${RELEASE_COMMIT_MESSAGE}"
-else
-  echo "Nothing to commit..."
 fi
 
 # merge current develop (over release branch) into master
@@ -65,12 +65,12 @@ git tag -a "${RELEASE_TAG}" -m "${RELEASE_TAG_MESSAGE}"
 git checkout "${DEVELOP_BRANCH}"
 git merge -X theirs --no-edit "${RELEASE_BRANCH}"
 
-if ! is_workspace_clean; then
+if is_workspace_clean; then
+  echo "Nothing to commit..."
+else
   # Commit next snapshot versions into develop
   SNAPSHOT_COMMIT_MESSAGE=$(get_next_snapshot_commit_message "${NEXT_SNAPSHOT_VERSION}")
   git commit -am "${SNAPSHOT_COMMIT_MESSAGE}"
-else
-  echo "Nothing to commit..."
 fi
 
 if git merge --no-edit "${RELEASE_BRANCH}"; then
