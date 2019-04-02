@@ -1,4 +1,17 @@
 
+v1.0.20 (2019-04-02)
+====================
+
+
+## Chores
+* Test 1 ([@blling](https://github.com/blling) in [4a5fda5](https://github.com/dxee/git-release/commit/4a5fda5))
+
+## Tests
+* test ([@blling](https://github.com/blling) in [7faab69](https://github.com/dxee/git-release/commit/7faab69))
+
+## Others
+* test ([@blling](https://github.com/blling) in [17c3b25](https://github.com/dxee/git-release/commit/17c3b25))
+
 v1.0.17 (2019-04-02)
 ====================
 
