@@ -9,12 +9,6 @@ if [ $# -ne 2 ]; then
   exit 2
 fi
 
-RELEASE_VERSION=$1
-NEXT_VERSION=$2
-RELEASE_BRANCH=$(format_release_branch_name "$RELEASE_VERSION")
-RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
-NEXT_SNAPSHOT_VERSION=$(format_snapshot_version "${NEXT_VERSION}")
-
 if [ -f "${SCRIPT_PATH}/.common-util.sh" ]; then
   # shellcheck source=.common-util.sh
   source "${SCRIPT_PATH}/.common-util.sh"
@@ -22,6 +16,12 @@ else
   echo 'Missing file .common-util.sh. Aborting'
   exit 1
 fi
+
+RELEASE_VERSION=$1
+NEXT_VERSION=$2
+RELEASE_BRANCH=$(format_release_branch_name "$RELEASE_VERSION")
+RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
+NEXT_SNAPSHOT_VERSION=$(format_snapshot_version "${NEXT_VERSION}")
 
 if [ ! "${CURRENT_BRANCH}" = "${DEVELOP_BRANCH}" ]; then
   echo "Please checkout the branch '${DEVELOP_BRANCH}' before processing this release script."
