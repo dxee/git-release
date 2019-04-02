@@ -1,4 +1,11 @@
 
+v1.0.19 (2019-04-02)
+====================
+
+
+## Bug Fixes
+* **release** fix hitfix release ([@blling](https://github.com/blling) in [c8382b6](https://github.com/dxee/git-release/commit/c8382b6))
+
 v1.0.18 (2019-04-02)
 ====================
 
