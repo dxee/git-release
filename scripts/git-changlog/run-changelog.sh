@@ -12,7 +12,7 @@ supported_types_list=(
     "refactor.*:"
     "perf.*:"
     "test.*:"
-    "revert.*"
+    "revert.*:"
     "chore.*:"
     "docs.*:"
     "BREAKING CHANGE:"
