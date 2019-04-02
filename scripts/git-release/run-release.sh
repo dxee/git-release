@@ -43,7 +43,7 @@ fi
 git checkout -b "${RELEASE_BRANCH}" "${DEVELOP_BRANCH}"
 
 # add changelog
-"${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}" && git add CHANGELOG.md
+"${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
 
 if ! is_workspace_clean; then
   # commit release versions
