@@ -10,9 +10,6 @@ if [ $# -ne 2 ]; then
   exit 2
 fi
 
-HOTFIX_VERSION=$1
-NEXT_VERSION=$2
-
 # Necessary to calculate develop/master branch name
 RELEASE_VERSION=${HOTFIX_VERSION}
 
@@ -23,6 +20,10 @@ else
   echo 'Missing file .common-util.sh. Aborting'
   exit 1
 fi
+
+HOTFIX_VERSION=$1
+NEXT_VERSION=$2
+HOTFIX_TAG=$(format_release_tag "${HOTFIX_VERSION}")
 
 unset RELEASE_VERSION
 
@@ -35,53 +36,22 @@ fi
 
 check_local_workspace_state "hotfix_finish"
 
+# use hotfix branch
 git checkout "${HOTFIX_BRANCH}" && git pull "${REMOTE_REPO}"
+# add changelog
+HOTFIX_RELEASE_COMMIT_MESSAGE=$(get_release_hotfix_commit_message "${HOTFIX_VERSION}")
 
-cd "${GIT_REPO_DIR}"
-git reset --hard
-
-cd "${GIT_REPO_DIR}"
-
-if ! is_workspace_clean; then
-  # commit hotfix versions
-  HOTFIX_RELEASE_COMMIT_MESSAGE=$(get_release_hotfix_commit_message "${HOTFIX_VERSION}")
-  git commit -am "${HOTFIX_RELEASE_COMMIT_MESSAGE}"
-else
-  echo "Nothing to commit..."
-fi
-
-cd "${GIT_REPO_DIR}"
-git reset --hard
+"${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${HOTFIX_TAG}" && cd "${GIT_REPO_DIR}"
+git add .
+git commit -m "${HOTFIX_RELEASE_COMMIT_MESSAGE}"
 
 # merge current hotfix into master
 git checkout "${MASTER_BRANCH}" && git pull "${REMOTE_REPO}"
 git merge --no-edit "${HOTFIX_BRANCH}"
 
-# create release tag
-HOTFIX_TAG=$(format_release_tag "${HOTFIX_VERSION}")
+# create release tag on master
 HOTFIX_TAG_MESSAGE=$(get_hotfix_relesae_tag_message "${HOTFIX_VERSION}")
-
-# add changelog
-"${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${HOTFIX_TAG}"
-git add .
-git commit -m 'docs(release): Add CHANGELOG.md'
-git push --set-upstream "${REMOTE_REPO}" "${HOTFIX_BRANCH}"
-
 git tag -a "${HOTFIX_TAG}" -m "${HOTFIX_TAG_MESSAGE}"
-
-git checkout "${HOTFIX_BRANCH}"
-
-# prepare next snapshot version
-NEXT_SNAPSHOT_VERSION=$(format_snapshot_version "${NEXT_VERSION}")
-cd "${GIT_REPO_DIR}"
-
-if ! is_workspace_clean; then
-  # commit next snapshot versions
-  SNAPSHOT_AFTER_HOTFIX_COMMIT_MESSAGE=$(get_next_snapshot_commit_message_after_hotfix "${NEXT_SNAPSHOT_VERSION}" "${HOTFIX_VERSION}")
-  git commit -am "${SNAPSHOT_AFTER_HOTFIX_COMMIT_MESSAGE}"
-else
-  echo "Nothing to commit..."
-fi
 
 # merge next snapshot version into develop
 git checkout "${DEVELOP_BRANCH}"
