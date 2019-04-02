@@ -45,7 +45,7 @@ cd "${GIT_REPO_DIR}" && git checkout "${DEVELOP_BRANCH}"
 # add changelog
 RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
 
-"${GIT_REPO_DIR}"/scripts/git-changlog/run.sh -n -t "${RELEASE_TAG}"
+"${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}"
 
 git add .
 git commit -m 'docs(release): Add CHANGELOG.md'

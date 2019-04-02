@@ -62,7 +62,7 @@ HOTFIX_TAG=$(format_release_tag "${HOTFIX_VERSION}")
 HOTFIX_TAG_MESSAGE=$(get_hotfix_relesae_tag_message "${HOTFIX_VERSION}")
 
 # add changelog
-"${GIT_REPO_DIR}"/scripts/git-changlog/run.sh -n -t "${HOTFIX_TAG}"
+"${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${HOTFIX_TAG}"
 git add .
 git commit -m 'docs(release): Add CHANGELOG.md'
 git push --set-upstream "${REMOTE_REPO}" "${HOTFIX_BRANCH}"
