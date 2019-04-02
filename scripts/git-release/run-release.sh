@@ -49,7 +49,7 @@ if is_workspace_clean; then
   echo "Nothing to commit..."
 else
   # commit release versions
-  RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${RELEASE_VERSION}")
+  RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${NEXT_VERSION}")
   git add .
   git commit -am "${RELEASE_COMMIT_MESSAGE}"
 fi
