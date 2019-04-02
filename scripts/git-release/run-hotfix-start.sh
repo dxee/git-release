@@ -30,17 +30,14 @@ HOTFIX_BRANCH=$(format_hotfix_branch_name "${HOTFIX_VERSION}")
 
 check_local_workspace_state "hotfix_start"
 
-git checkout "${MASTER_BRANCH}" && git pull "${REMOTE_REPO}"
-git checkout -b "${HOTFIX_BRANCH}"
+git checkout "${MASTER_BRANCH}" && git pull "${REMOTE_REPO}" && git checkout -b "${HOTFIX_BRANCH}"
 
-cd "${GIT_REPO_DIR}"
-
-if ! is_workspace_clean; then
+if is_workspace_clean; then
+  echo "Nothing to commit..."
+else
   # commit hotfix versions
   START_HOTFOX_COMMIT_MESSAGE=$(get_start_hotfix_commit_message "${HOTFIX_SNAPSHOT_VERSION}")
   git commit -am "${START_HOTFOX_COMMIT_MESSAGE}"
-else
-  echo "Nothing to commit..."
 fi
 
 git push --set-upstream ${REMOTE_REPO} ${HOTFIX_BRANCH}

@@ -157,8 +157,8 @@ _valueForKeyFakeAssocArray() {
 
 _get_group_title() {
     case "$1" in
-    "fix.*:") echo "Bug Fix" ;;
-    "feat.*:") echo "Features" ;;
+    "fix.*:") echo "Bug Fixes" ;;
+    "feat.*:") echo "Improvements" ;;
     "chore.*:") echo "Chores" ;;
     "docs.*:") echo "Documentations" ;;
     "refactor.*:") echo "Refactors" ;;
