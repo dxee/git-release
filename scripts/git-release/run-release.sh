@@ -45,15 +45,10 @@ git checkout -b "${RELEASE_BRANCH}" "${DEVELOP_BRANCH}"
 # add changelog
 "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
 
-if is_workspace_clean; then
-  echo "Nothing to commit on branch: ${RELEASE_BRANCH}..."
-  ls .
-else
-  # commit release versions
-  RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${NEXT_VERSION}")
-  git add .
-  git commit -am "${RELEASE_COMMIT_MESSAGE}"
-fi
+# commit release versions
+RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${NEXT_VERSION}")
+git add .
+git commit -am "${RELEASE_COMMIT_MESSAGE}"
 
 # merge current develop (over release branch) into master
 git checkout "${MASTER_BRANCH}" && git pull "${REMOTE_REPO}"
