@@ -50,6 +50,7 @@ if is_workspace_clean; then
 else
   # commit release versions
   RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${RELEASE_VERSION}")
+  git add .
   git commit -am "${RELEASE_COMMIT_MESSAGE}"
 fi
 
