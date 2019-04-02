@@ -11,6 +11,9 @@ fi
 
 RELEASE_VERSION=$1
 NEXT_VERSION=$2
+RELEASE_BRANCH=$(format_release_branch_name "$RELEASE_VERSION")
+RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
+NEXT_SNAPSHOT_VERSION=$(format_snapshot_version "${NEXT_VERSION}")
 
 if [ -f "${SCRIPT_PATH}/.common-util.sh" ]; then
   # shellcheck source=.common-util.sh
@@ -20,8 +23,6 @@ else
   exit 1
 fi
 
-RELEASE_BRANCH=$(format_release_branch_name "$RELEASE_VERSION")
-
 if [ ! "${CURRENT_BRANCH}" = "${DEVELOP_BRANCH}" ]; then
   echo "Please checkout the branch '${DEVELOP_BRANCH}' before processing this release script."
   exit 1
@@ -29,35 +30,25 @@ fi
 
 check_local_workspace_state "release"
 
+## update local develop branch
 git checkout "${DEVELOP_BRANCH}" && git pull "${REMOTE_REPO}"
 
 # check and create master branch if not present
-if is_branch_existing "${MASTER_BRANCH}" || is_branch_existing "remotes/${REMOTE_REPO}/${MASTER_BRANCH}"; then
-  git checkout "${MASTER_BRANCH}" && git pull "${REMOTE_REPO}"
-else
-  git checkout -b "${MASTER_BRANCH}"
+if ！ is_branch_existing "${MASTER_BRANCH}" && ！ is_branch_existing "remotes/${REMOTE_REPO}/${MASTER_BRANCH}"; then
+  git checkout -b "${MASTER_BRANCH}" "${DEVELOP_BRANCH}"
   git push --set-upstream "${REMOTE_REPO}" "${MASTER_BRANCH}"
 fi
 
-# checkout develop branch
-cd "${GIT_REPO_DIR}" && git checkout "${DEVELOP_BRANCH}" 
+# checkout release branch
+git checkout -b "${RELEASE_BRANCH}" "${DEVELOP_BRANCH}"
 
 # add changelog
-RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
-
 "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}"
 
+cd "${GIT_REPO_DIR}"
+
 git add .
-git commit -m 'docs(release): Add CHANGELOG.md'
-git push --set-upstream "${REMOTE_REPO}" "${DEVELOP_BRANCH}"
-
-# checkout release branch
-cd "${GIT_REPO_DIR}" && git checkout -b "${RELEASE_BRANCH}"
-
-cd "${GIT_REPO_DIR}"
-git reset --hard
-
-cd "${GIT_REPO_DIR}"
+git commit -m "docs(release): Add ${RELEASE_VERSION} CHANGELOG.md"
 
 if ! is_workspace_clean; then
   # commit release versions
@@ -67,24 +58,18 @@ else
   echo "Nothing to commit..."
 fi
 
-cd "${GIT_REPO_DIR}"
-git reset --hard
-
 # merge current develop (over release branch) into master
-git checkout "${MASTER_BRANCH}"
+git checkout "${MASTER_BRANCH}" && git pull "${REMOTE_REPO}"
 git merge -X theirs --no-edit "${RELEASE_BRANCH}"
 
 # create release tag on master
 RELEASE_TAG_MESSAGE=$(get_release_tag_message "${RELEASE_VERSION}")
-
 git tag -a "${RELEASE_TAG}" -m "${RELEASE_TAG_MESSAGE}"
 
 # merge release into develop
+cd "${GIT_REPO_DIR}"
 git checkout "${DEVELOP_BRANCH}"
 git merge -X theirs --no-edit "${RELEASE_BRANCH}"
-
-NEXT_SNAPSHOT_VERSION=$(format_snapshot_version "${NEXT_VERSION}")
-cd "${GIT_REPO_DIR}"
 
 if ! is_workspace_clean; then
   # Commit next snapshot versions into develop
