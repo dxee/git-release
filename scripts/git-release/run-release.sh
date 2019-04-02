@@ -34,7 +34,7 @@ check_local_workspace_state "release"
 git checkout "${DEVELOP_BRANCH}" && git pull "${REMOTE_REPO}"
 
 # check and create master branch if not present
-if [ ！ is_branch_existing "${MASTER_BRANCH}" ] && [ ！ is_branch_existing "remotes/${REMOTE_REPO}/${MASTER_BRANCH}" ]; then
+if ! is_branch_existing "${MASTER_BRANCH}" ] && ! is_branch_existing "remotes/${REMOTE_REPO}/${MASTER_BRANCH}"; then
   git checkout -b "${MASTER_BRANCH}" "${DEVELOP_BRANCH}"
   git push --set-upstream "${REMOTE_REPO}" "${MASTER_BRANCH}"
 fi
