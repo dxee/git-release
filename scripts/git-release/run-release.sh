@@ -23,7 +23,7 @@ RELEASE_BRANCH=$(format_release_branch_name "$RELEASE_VERSION")
 RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
 NEXT_SNAPSHOT_VERSION=$(format_snapshot_version "${NEXT_VERSION}")
 
-if [ ! "${CURRENT_BRANCH}" = "${DEVELOP_BRANCH}" ]; then
+if ! "${CURRENT_BRANCH}" = "${DEVELOP_BRANCH}"; then
   echo "Please checkout the branch '${DEVELOP_BRANCH}' before processing this release script."
   exit 1
 fi
@@ -34,7 +34,7 @@ check_local_workspace_state "release"
 git checkout "${DEVELOP_BRANCH}" && git pull "${REMOTE_REPO}"
 
 # check and create master branch if not present
-if ！ is_branch_existing "${MASTER_BRANCH}" && ！ is_branch_existing "remotes/${REMOTE_REPO}/${MASTER_BRANCH}"; then
+if [ ！ is_branch_existing "${MASTER_BRANCH}" ] && [ ！ is_branch_existing "remotes/${REMOTE_REPO}/${MASTER_BRANCH}" ]; then
   git checkout -b "${MASTER_BRANCH}" "${DEVELOP_BRANCH}"
   git push --set-upstream "${REMOTE_REPO}" "${MASTER_BRANCH}"
 fi
