@@ -1,4 +1,11 @@
 
+v1.0.18 (2019-04-02)
+====================
+
+
+## Chores
+* **release** Fix CHANGELOG missing ([@blling](https://github.com/blling) in [baa0b65](https://github.com/dxee/git-release/commit/baa0b65))
+
 v1.0.17 (2019-04-02)
 ====================
 
