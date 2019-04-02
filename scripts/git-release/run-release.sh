@@ -23,7 +23,7 @@ RELEASE_BRANCH=$(format_release_branch_name "$RELEASE_VERSION")
 RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
 NEXT_SNAPSHOT_VERSION=$(format_snapshot_version "${NEXT_VERSION}")
 
-if ! "${CURRENT_BRANCH}" = "${DEVELOP_BRANCH}"; then
+if [ ! "${CURRENT_BRANCH}" = "${DEVELOP_BRANCH}" ]; then
   echo "Please checkout the branch '${DEVELOP_BRANCH}' before processing this release script."
   exit 1
 fi
