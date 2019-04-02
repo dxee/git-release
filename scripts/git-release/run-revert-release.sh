@@ -55,7 +55,10 @@ fi
 # delete release tag
 RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
 if git rev-parse --verify "${RELEASE_TAG}"; then
+  # delete local tag
   git tag -d "${RELEASE_TAG}"
+  # Also delete remote tag
+  git push origin -d refs/tags/"${RELEASE_TAG}"
 fi
 
 # return to previous branch

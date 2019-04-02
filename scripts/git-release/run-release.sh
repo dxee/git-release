@@ -46,7 +46,8 @@ git checkout -b "${RELEASE_BRANCH}" "${DEVELOP_BRANCH}"
 "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
 
 if is_workspace_clean; then
-  echo "Nothing to commit..."
+  echo "Nothing to commit on branch: ${RELEASE_BRANCH}..."
+  ls .
 else
   # commit release versions
   RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${NEXT_VERSION}")
