@@ -9,12 +9,12 @@ PROGNAME="git-changelog"
 supported_types_list=(
     "feat.*:"
     "fix.*:"
-    "chore.*:"
-    "docs.*:"
     "refactor.*:"
     "perf.*:"
     "test.*:"
     "revert.*"
+    "chore.*:"
+    "docs.*:"
     "BREAKING CHANGE:"
 )
 group_list=()
