@@ -62,7 +62,7 @@ RELEASE_TAG_MESSAGE=$(get_release_tag_message "${RELEASE_VERSION}")
 git tag -a "${RELEASE_TAG}" -m "${RELEASE_TAG_MESSAGE}"
 
 # merge release into develop
-git checkout "${DEVELOP_BRANCH}"
+git checkout "${DEVELOP_BRANCH}" && git pull "${REMOTE_REPO}"
 git merge -X theirs --no-edit "${RELEASE_BRANCH}"
 
 if is_workspace_clean; then
