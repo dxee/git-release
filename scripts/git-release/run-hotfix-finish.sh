@@ -3,15 +3,6 @@ set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ -f "${SCRIPT_PATH}/.version.sh" ]; then
-  # shellcheck source=.version.sh
-  source "${SCRIPT_PATH}/.version.sh"
-else
-  VERSION="UNKNOWN VERSION"
-fi
-
-echo "Release scripts (hotfix-finish, version: ${VERSION})"
-
 if [ $# -ne 2 ]; then
   echo 'Usage: hotfix_finish.sh <hotfix-version> <next-snapshot-version>'
   echo 'For example:'
@@ -46,11 +37,9 @@ check_local_workspace_state "hotfix_finish"
 
 git checkout "${HOTFIX_BRANCH}" && git pull "${REMOTE_REPO}"
 
-build_snapshot_modules
 cd "${GIT_REPO_DIR}"
 git reset --hard
 
-set_modules_version "${HOTFIX_VERSION}"
 cd "${GIT_REPO_DIR}"
 
 if ! is_workspace_clean; then
@@ -61,7 +50,6 @@ else
   echo "Nothing to commit..."
 fi
 
-build_release_modules
 cd "${GIT_REPO_DIR}"
 git reset --hard
 
@@ -72,13 +60,19 @@ git merge --no-edit "${HOTFIX_BRANCH}"
 # create release tag
 HOTFIX_TAG=$(format_release_tag "${HOTFIX_VERSION}")
 HOTFIX_TAG_MESSAGE=$(get_hotfix_relesae_tag_message "${HOTFIX_VERSION}")
+
+# add changelog
+"${GIT_REPO_DIR}"/scripts/git-changlog/run.sh -n -t "${HOTFIX_TAG}"
+git add .
+git commit -m 'docs(release): Add CHANGELOG.md'
+git push --set-upstream "${REMOTE_REPO}" "${HOTFIX_BRANCH}"
+
 git tag -a "${HOTFIX_TAG}" -m "${HOTFIX_TAG_MESSAGE}"
 
 git checkout "${HOTFIX_BRANCH}"
 
 # prepare next snapshot version
 NEXT_SNAPSHOT_VERSION=$(format_snapshot_version "${NEXT_VERSION}")
-set_modules_version "${NEXT_SNAPSHOT_VERSION}"
 cd "${GIT_REPO_DIR}"
 
 if ! is_workspace_clean; then
@@ -95,6 +89,7 @@ git checkout "${DEVELOP_BRANCH}"
 if git merge --no-edit "${HOTFIX_BRANCH}"; then
   git push --atomic ${REMOTE_REPO} ${MASTER_BRANCH} ${DEVELOP_BRANCH} ${HOTFIX_BRANCH} --follow-tags
   if [ $? -eq 0 ]; then
+    git push "${REMOTE_REPO}" -d "${HOTFIX_BRANCH}"
     echo "# Okay, now you've got a new tag ${HOTFIX_VERSION} and commits on ${MASTER_BRANCH} and ${DEVELOP_BRANCH}"
   fi
 else

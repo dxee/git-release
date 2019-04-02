@@ -3,15 +3,6 @@ set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ -f "${SCRIPT_PATH}/.version.sh" ]; then
-  # shellcheck source=.version.sh
-  source "${SCRIPT_PATH}/.version.sh"
-else
-  VERSION="UNKNOWN VERSION"
-fi
-
-echo "Release scripts (release, version: ${VERSION})"
-
 if [ $# -ne 2 ]; then
   echo 'Usage: release.sh <release-version> <next-snapshot-version>'
   echo 'For example: release.sh 0.1.0 0.2.0'
@@ -63,11 +54,9 @@ git push --set-upstream "${REMOTE_REPO}" "${DEVELOP_BRANCH}"
 # checkout release branch
 cd "${GIT_REPO_DIR}" && git checkout -b "${RELEASE_BRANCH}"
 
-build_snapshot_modules
 cd "${GIT_REPO_DIR}"
 git reset --hard
 
-set_modules_version "${RELEASE_VERSION}"
 cd "${GIT_REPO_DIR}"
 
 if ! is_workspace_clean; then
@@ -78,7 +67,6 @@ else
   echo "Nothing to commit..."
 fi
 
-build_release_modules
 cd "${GIT_REPO_DIR}"
 git reset --hard
 
@@ -96,7 +84,6 @@ git checkout "${DEVELOP_BRANCH}"
 git merge -X theirs --no-edit "${RELEASE_BRANCH}"
 
 NEXT_SNAPSHOT_VERSION=$(format_snapshot_version "${NEXT_VERSION}")
-set_modules_version "${NEXT_SNAPSHOT_VERSION}"
 cd "${GIT_REPO_DIR}"
 
 if ! is_workspace_clean; then

@@ -1,12 +1,21 @@
 DEF_TAG_RECENT="n.n.n"
 GIT_LOG_OPTS=""
-GIT_LOG_AUTHOR="https://rdgit.travelsky.com/users/"
-GIT_LOG_COMMITS="https://rdgit.travelsky.com/projects/DSS/repos/dss_v1_nrts_etl/commits/"
+GIT_LOG_AUTHOR="https://github.com/"
+GIT_LOG_COMMITS="https://github.com/dxee/git-release/commit/"
 GIT_LOG_FORMAT='%an|%h|%s'
 GIT_LOG_DATE_FORMAT='%Y-%m-%d %H:%M:%S'
 GIT_EDITOR="$(git var GIT_EDITOR)"
 PROGNAME="git-changelog"
-supported_groups_list=("feat.*:" "fix.*:" "BREAKING CHANGE:")
+supported_types_list=(
+    "feat.*:"
+    "fix.*:"
+    "chore.*:"
+    "docs.*:"
+    "refactor.*:"
+    "perf.*:"
+    "test.*:"
+    "BREAKING CHANGE:"
+)
 group_list=()
 
 _usage() {
@@ -149,6 +158,11 @@ _get_group_title() {
     case "$1" in
     "fix.*:") echo "Bug Fix" ;;
     "feat.*:") echo "Features" ;;
+    "chore.*:") echo "BREAKING CHANGE" ;;
+    "docs.*:") echo "Documentation" ;;
+    "refactor.*:") echo "Refactor" ;;
+    "perf.*:") echo "Performance" ;;
+    "test.*:") echo "Test" ;;
     "BREAKING CHANGE:") echo "BREAKING CHANGE" ;;
     *) echo "Others" ;;
     esac
@@ -169,9 +183,9 @@ _filter_by_group() {
 }
 
 _is_grouped_comment() {
-    local supported_groups_list_length="${#supported_groups_list[@]}"
-    for ((i = 0; i < "${supported_groups_list_length}"; i++)); do
-        local __tmp_content="$(_filter_by_group "$1" "${supported_groups_list[$i]}")"
+    local supported_types_list_length="${#supported_types_list[@]}"
+    for ((i = 0; i < "${supported_types_list_length}"; i++)); do
+        local __tmp_content="$(_filter_by_group "$1" "${supported_types_list[$i]}")"
         [[ -n "$__tmp_content" ]] && echo 1 && return
     done
 
@@ -188,9 +202,9 @@ _create_content_changelog() {
     local group_list_length="${#group_list[@]}"
     local group_others=()
 
-    local supported_groups_list_length="${#supported_groups_list[@]}"
-    for ((i = 0; i < "${supported_groups_list_length}"; i++)); do
-        local _group="${supported_groups_list[$i]}"
+    local supported_types_list_length="${#supported_types_list[@]}"
+    for ((i = 0; i < "${supported_types_list_length}"; i++)); do
+        local _group="${supported_types_list[$i]}"
         local _show_group=0
         for ((_i = 0; _i < "${group_list_length}"; _i++)); do
             local __tmp_comment="${group_list[$_i]}"

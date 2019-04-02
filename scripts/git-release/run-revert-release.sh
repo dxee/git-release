@@ -3,15 +3,6 @@ set -e
 
 SCRIPT_PATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-if [ -f "${SCRIPT_PATH}/.version.sh" ]; then
-	# shellcheck source=.version.sh
-  source "${SCRIPT_PATH}/.version.sh"
-else
-	VERSION="UNKNOWN VERSION"
-fi
-
-echo "Release scripts (revert-release, version: ${VERSION})"
-
 if [[ $# -ne 1 && $# -ne 2 ]]
 then
   echo 'Usage: revert_release.sh <release-version>'

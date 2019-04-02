@@ -7,13 +7,6 @@ SCRIPT_PARENT_PATH="$( dirname "${SCRIPT_PATH}" )"
 # shellcheck source=.hooks-default.sh
 source "${SCRIPT_PATH}/.hooks-default.sh"
 
-if [ -f "${SCRIPT_PARENT_PATH}/.release-scripts-hooks.sh" ]; then
-	echo "Found .release-scripts-hooks.sh. Using it as master hooks"
-
-	# shellcheck source=.release-scripts-hooks.sh
-	source "${SCRIPT_PARENT_PATH}/.release-scripts-hooks.sh"
-fi
-
 REMOTE_REPO=$(get_remote_repo_name)
 export REMOTE_REPO
 

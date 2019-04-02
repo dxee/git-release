@@ -56,24 +56,6 @@ function format_hotfix_branch_name {
   echo "hotfix-$1"
 }
 
-# Hook to build the snapshot modules before release
-# You can build and run your tests here to avoid releasing an unstable build
-function build_snapshot_modules {
-  echo "do nothing" >> /dev/null
-}
-
-# Hook to build the released modules after release
-# You can deploy your artifacts here
-function build_release_modules {
-  echo "do nothing" >> /dev/null
-}
-
-# Should set version numbers in your modules
-# Parameter $1 - version as text
-function set_modules_version {
-  echo "Version: $1 - do nothing" >> /dev/null
-}
-
 # Builds the commit message used for your release commit
 # Parameter $1 - release version as text
 function get_release_commit_message {

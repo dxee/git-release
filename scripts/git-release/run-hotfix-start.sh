@@ -3,15 +3,6 @@ set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ -f "${SCRIPT_PATH}/.version.sh" ]; then
-  # shellcheck source=.version.sh
-  source "${SCRIPT_PATH}/.version.sh"
-else
-  VERSION="UNKNOWN VERSION"
-fi
-
-echo "Release scripts (hotfix-start, version: ${VERSION})"
-
 if [ $# -ne 1 ]; then
   echo 'Usage: hotfix_start.sh <hotfix-version>'
   echo 'For example:'
@@ -42,7 +33,6 @@ check_local_workspace_state "hotfix_start"
 git checkout "${MASTER_BRANCH}" && git pull "${REMOTE_REPO}"
 git checkout -b "${HOTFIX_BRANCH}"
 
-set_modules_version "${HOTFIX_SNAPSHOT_VERSION}"
 cd "${GIT_REPO_DIR}"
 
 if ! is_workspace_clean; then
