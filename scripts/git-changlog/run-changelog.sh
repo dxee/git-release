@@ -14,6 +14,7 @@ supported_types_list=(
     "refactor.*:"
     "perf.*:"
     "test.*:"
+    "revert.*"
     "BREAKING CHANGE:"
 )
 group_list=()
@@ -158,12 +159,13 @@ _get_group_title() {
     case "$1" in
     "fix.*:") echo "Bug Fix" ;;
     "feat.*:") echo "Features" ;;
-    "chore.*:") echo "BREAKING CHANGE" ;;
-    "docs.*:") echo "Documentation" ;;
-    "refactor.*:") echo "Refactor" ;;
-    "perf.*:") echo "Performance" ;;
-    "test.*:") echo "Test" ;;
-    "BREAKING CHANGE:") echo "BREAKING CHANGE" ;;
+    "chore.*:") echo "Chores" ;;
+    "docs.*:") echo "Documentations" ;;
+    "refactor.*:") echo "Refactors" ;;
+    "perf.*:") echo "Performance Improvements" ;;
+    "test.*:") echo "Tests" ;;
+    "revert.*:") echo "Reverts" ;;
+    "BREAKING CHANGE:") echo "BREAKING CHANGES" ;;
     *) echo "Others" ;;
     esac
 }

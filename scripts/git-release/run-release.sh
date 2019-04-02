@@ -43,12 +43,7 @@ fi
 git checkout -b "${RELEASE_BRANCH}" "${DEVELOP_BRANCH}"
 
 # add changelog
-"${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}"
-
-cd "${GIT_REPO_DIR}"
-
-git add .
-git commit -m "docs(release): Add ${RELEASE_VERSION} CHANGELOG.md"
+"${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}" && git add CHANGELOG.md
 
 if ! is_workspace_clean; then
   # commit release versions
@@ -67,7 +62,6 @@ RELEASE_TAG_MESSAGE=$(get_release_tag_message "${RELEASE_VERSION}")
 git tag -a "${RELEASE_TAG}" -m "${RELEASE_TAG_MESSAGE}"
 
 # merge release into develop
-cd "${GIT_REPO_DIR}"
 git checkout "${DEVELOP_BRANCH}"
 git merge -X theirs --no-edit "${RELEASE_BRANCH}"
 
