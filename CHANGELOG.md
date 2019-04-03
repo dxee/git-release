@@ -1,4 +1,11 @@
 
+v1.0.22 (2019-04-03)
+====================
+
+
+## Chores
+* **release** Change log is operate ([@blling](https://rdgit.travelsky.com/users/blling) in [15bf35b](https://rdgit.travelsky.com/projects/DSS/repos/dss_v1_nrts_etl/commits/15bf35b))
+
 v2.0.0.alpha6 (2019-04-03)
 ==========================
 
