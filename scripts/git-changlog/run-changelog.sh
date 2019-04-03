@@ -406,9 +406,9 @@ commitList() {
         # strip out any additional tags pointing to same commit, remove tag label
         _tag="${_tag%%,*}"
         _tag="${_tag#tag: }"
-        # if [[ "$(_valueForKeyFakeAssocArray "pro_release" "${option[*]}")" == true && "$(grep -E "^v([0-9])+.([0-9])+.([0-9])+$" <<<"${_tag}")" != "${_tag}" ]]; then
-        #     continue
-        # fi
+        if [[ "$(_valueForKeyFakeAssocArray "pro_release" "${option[*]}")" == true && "$(grep -E "^v([0-9])+.([0-9])+.([0-9])+$" <<<"${_tag}")" != "${_tag}" ]]; then
+            continue
+        fi
         tags_list+=("${_tag}:${_ref}=>${_date}")
         tags_list_keys+=("${_tag}")
     done <<<"$(git log --tags --simplify-by-decoration --date="short" --pretty="format:%h${_tab}%ad${_tab}%d")"
