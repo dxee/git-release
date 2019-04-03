@@ -1,4 +1,11 @@
 
+v1.0.30 (2019-04-03)
+====================
+
+
+## Bug Fixes
+* **release** some small fix ([@blling](https://github.com/blling) in [ad5759e](https://github.com/dxee/git-release/commit/ad5759e))
+
 v1.0.29 (2019-04-03)
 ====================
 

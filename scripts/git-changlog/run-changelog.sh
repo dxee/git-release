@@ -6,7 +6,7 @@ GIT_LOG_FORMAT='%an|%h|%s'
 GIT_LOG_DATE_FORMAT='%Y-%m-%d %H:%M:%S'
 GIT_EDITOR="$(git var GIT_EDITOR)"
 PROGNAME="git-changelog"
-supported_types_list=(
+SUPPORTED_TYPES_LIST=(
     "feat.*:"
     "fix.*:"
     "refactor.*:"
@@ -17,9 +17,9 @@ supported_types_list=(
     "docs.*:"
     "BREAKING CHANGE:"
 )
-group_list=()
+GROUP_LIST=()
 
-_usage() {
+usage() {
     cat <<EOF
 usage: $PROGNAME options [file]
 usage: $PROGNAME -h|help|?
@@ -48,15 +48,15 @@ OPTIONS:
 EOF
 }
 
-_error() {
-    [ $# -eq 0 ] && _usage && exit 0
+log_error() {
+    [ $# -eq 0 ] && usage && exit 0
 
     echo
     echo "ERROR: " "$@"
     echo
 }
 
-# _setValueForKeyFakeAssocArray()
+# set_value_for_key_fake_assoc_array()
 # /*!
 # @abstract Set value for key from a fake associative array
 # @discussion
@@ -78,7 +78,7 @@ _error() {
 # @return Returns new array with updated key (status 0) or an empty array
 #   (status 1) on failure.
 # */
-_setValueForKeyFakeAssocArray() {
+set_value_for_key_fake_assoc_array() {
     # parameter list supports empty arguments!
     local target_key="$1"
     shift
@@ -114,7 +114,7 @@ _setValueForKeyFakeAssocArray() {
     printf "%s" "${target_ary[*]}"
 }
 
-# _valueForKeyFakeAssocArray()
+# value_for_key_fake_assoc_array()
 # /*!
 # @abstract Fetch value for key from a fake associative array
 # @discussion
@@ -132,7 +132,7 @@ _setValueForKeyFakeAssocArray() {
 # @return Returns string containing value (status 0) or an empty string
 #   (status 1) on failure.
 # */
-_valueForKeyFakeAssocArray() {
+value_for_key_fake_assoc_array() {
     local target_key="$1"
     local target_ary=()
     local defaultIFS="$IFS"
@@ -156,7 +156,7 @@ _valueForKeyFakeAssocArray() {
     return 0
 }
 
-_get_group_title() {
+get_group_title() {
     case "$1" in
     "fix.*:") echo "Bug Fixes" ;;
     "feat.*:") echo "Improvements" ;;
@@ -172,14 +172,14 @@ _get_group_title() {
 }
 
 # make a temporary file
-_git_extra_mktemp() {
+git_extra_mktemp() {
     mktemp -t "$(basename "$0")".XXXXXXX
 }
 
-_filter_by_group() {
+filter_by_group() {
     local expGrep=""
     if [ $# -eq 0 ]; then
-        echo "Nothing to filter on _filter_by_group!"
+        echo "Nothing to filter on filter_by_group!"
         return 1 #failure
     fi
     local comment="${1#*|}"
@@ -188,69 +188,69 @@ _filter_by_group() {
     [ -n "$comment" ] && echo "$1"
 }
 
-_is_grouped_comment() {
-    local supported_types_list_length="${#supported_types_list[@]}"
+is_grouped_comment() {
+    local supported_types_list_length="${#SUPPORTED_TYPES_LIST[@]}"
     for ((i = 0; i < "${supported_types_list_length}"; i++)); do
-        local __tmp_content="$(_filter_by_group "$1" "${supported_types_list[$i]}")"
-        [[ -n "$__tmp_content" ]] && echo 1 && return
+        local tmp_content="$(filter_by_group "$1" "${SUPPORTED_TYPES_LIST[$i]}")"
+        [[ -n "$tmp_content" ]] && echo 1 && return
     done
 
     echo 0
 }
 
-_contains() {
+contains() {
     for i in ${array[@]}; do
         [ "$i" == "$var" ] && echo 1 return
     done
 }
 
-_create_content_changelog() {
-    local group_list_length="${#group_list[@]}"
+create_content_changelog() {
+    local group_list_length="${#GROUP_LIST[@]}"
     local group_others=()
 
-    local supported_types_list_length="${#supported_types_list[@]}"
+    local supported_types_list_length="${#SUPPORTED_TYPES_LIST[@]}"
     for ((i = 0; i < "${supported_types_list_length}"; i++)); do
-        local _group="${supported_types_list[$i]}"
-        local _show_group=0
+        local group="${SUPPORTED_TYPES_LIST[$i]}"
+        local show_group=0
         for ((_i = 0; _i < "${group_list_length}"; _i++)); do
-            local __tmp_comment="${group_list[$_i]}"
-            local is_grouped_comment="$(_is_grouped_comment "$__tmp_comment")"
+            local tmp_comment="${GROUP_LIST[$_i]}"
+            local is_grouped_comment="$(is_grouped_comment "$tmp_comment")"
 
             if [ $is_grouped_comment -eq 0 ]; then
                 local others_contains=0
                 for ((__i = 0; __i < "${#group_others[@]}"; __i++)); do
-                    [[ "${group_others[$__i]}" == "$__tmp_comment" ]] && others_contains=1 && break
+                    [[ "${group_others[$__i]}" == "$tmp_comment" ]] && others_contains=1 && break
                 done
-                [[ $others_contains -eq 0 ]] && group_others+=("$__tmp_comment")
+                [[ $others_contains -eq 0 ]] && group_others+=("$tmp_comment")
                 continue
             fi
 
-            local __tmp_content="$(_filter_by_group "$__tmp_comment" "$_group")"
-            if [ -z "$__tmp_content" ]; then
+            local tmp_content="$(filter_by_group "$tmp_comment" "$group")"
+            if [ -z "$tmp_content" ]; then
                 continue
             fi
-            if [ $_show_group -eq 0 ]; then
-                printf "\n## $(_get_group_title "$_group")\n"
-                _show_group=1
+            if [ $show_group -eq 0 ]; then
+                printf "\n## $(get_group_title "$group")\n"
+                show_group=1
             fi
 
-            local __commit_author="${__tmp_content%%|*}"
-            local __commit_hash="${__tmp_content#*|}"
-            local __scope="${__tmp_content%%\)*}"
+            local commit_author="${tmp_content%%|*}"
+            local commit_hash="${tmp_content#*|}"
+            local scope="${tmp_content%%\)*}"
 
-            __commit_hash="${__commit_hash%%|*}"
-            __scope="${__scope#*\(}"
-            if [ "$__scope" != "$__tmp_content" ]; then
+            commit_hash="${commit_hash%%|*}"
+            scope="${scope#*\(}"
+            if [ "$scope" != "$tmp_content" ]; then
                 printf "* **%s** %s ([@%s]($GIT_LOG_AUTHOR%s) in [%s]($GIT_LOG_COMMITS%s))\n" \
-                    "${__scope#*\: }" \
-                    "${__tmp_content#*\: }" \
-                    "$__commit_author" "$__commit_author" \
-                    "$__commit_hash" "$__commit_hash"
+                    "${scope#*\: }" \
+                    "${tmp_content#*\: }" \
+                    "$commit_author" "$commit_author" \
+                    "$commit_hash" "$commit_hash"
             else
                 printf "* %s ([@%s]($GIT_LOG_AUTHOR%s) in [%s]($GIT_LOG_COMMITS%s))\n" \
-                    "${__tmp_content#*\: }" \
-                    "$__commit_author" "$__commit_author" \
-                    "$__commit_hash" "$__commit_hash"
+                    "${tmp_content#*\: }" \
+                    "$commit_author" "$commit_author" \
+                    "$commit_hash" "$commit_hash"
             fi
         done
     done
@@ -259,44 +259,44 @@ _create_content_changelog() {
     local show_other_group=0
 
     for ((i = 0; i < "${group_others_length}"; i++)); do
-        local __tmp_other_comment="${group_others[$i]}"
-        [[ -z "$__tmp_other_comment" ]] && continue
+        local tmp_other_comment="${group_others[$i]}"
+        [[ -z "$tmp_other_comment" ]] && continue
         if [ $show_other_group -eq 0 ]; then
-            printf "\n## $(_get_group_title)\n"
+            printf "\n## $(get_group_title)\n"
             show_other_group=1
         fi
-        __tmp_content="${__tmp_other_comment#*|}"
-        __tmp_content="${__tmp_content#*|}"
-        __commit_author="${__tmp_other_comment%%|*}"
-        __commit_hash="${__tmp_other_comment#*|}"
-        __commit_hash="${__commit_hash%%|*}"
+        tmp_content="${tmp_other_comment#*|}"
+        tmp_content="${tmp_content#*|}"
+        commit_author="${tmp_other_comment%%|*}"
+        commit_hash="${tmp_other_comment#*|}"
+        commit_hash="${commit_hash%%|*}"
 
         printf "* %s ([@%s]($GIT_LOG_AUTHOR%s) in [%s]($GIT_LOG_COMMITS%s))\n" \
-            "${__tmp_content#*|}" \
-            "$__commit_author" "$__commit_author" \
-            "$__commit_hash" "$__commit_hash"
+            "${tmp_content#*|}" \
+            "$commit_author" "$commit_author" \
+            "$commit_hash" "$commit_hash"
     done
 }
 
-_fetchCommitRange() {
+fetch_commit_range() {
     local list_all="${1:-false}"
     local start_tag="$2"
     local final_tag="$3"
 
-    while read _commit_list; do
-        group_list+=("$_commit_list")
+    while read commit_list; do
+        GROUP_LIST+=("$commit_list")
 
         # Resolve body
-        local __commit_author="${_commit_list%%|*}"
-        local __commit_hash="${_commit_list#*|}"
-        __commit_hash="${__commit_hash%%|*}"
-        while read __commit_comment_body; do
-            local is_grouped_comment="$(_is_grouped_comment "$__commit_comment_body")"
+        local commit_author="${commit_list%%|*}"
+        local commit_hash="${commit_list#*|}"
+        commit_hash="${commit_hash%%|*}"
+        while read commit_comment_body; do
+            local is_grouped_comment="$(is_grouped_comment "$commit_comment_body")"
             if [ $is_grouped_comment -eq 1 ]; then
-                group_list+=("$__commit_author|$__commit_hash|$__commit_comment_body")
+                GROUP_LIST+=("$commit_author|$commit_hash|$commit_comment_body")
             fi
         done <<<"$(
-            git log -1 --pretty=format:%b $__commit_hash
+            git log -1 --pretty=format:%b $commit_hash
         )"
     done <<<"$(
         if [[ "$list_all" == true ]]; then
@@ -309,17 +309,17 @@ _fetchCommitRange() {
             git log $GIT_LOG_OPTS --date=format-local:"${GIT_LOG_DATE_FORMAT}" --pretty=format:"${GIT_LOG_FORMAT}" "${start_tag}"'..'
         fi
     )"
-    _create_content_changelog
+    create_content_changelog
 }
 
-_formatCommitPlain() {
+format_commit_plain() {
     local start_tag="$1"
     local final_tag="$2"
 
-    printf "%s\n" "$(_fetchCommitRange "false" "$start_tag" "$final_tag")"
+    printf "%s\n" "$(fetch_commit_range "false" "$start_tag" "$final_tag")"
 }
 
-_formatCommitPretty() {
+format_commit_pretty() {
     local title_tag="$1"
     local title_date="$2"
     local start_tag="$3"
@@ -334,7 +334,7 @@ _formatCommitPretty() {
     unset i
 
     printf '\n%s\n%s\n' "$title" "$title_underline"
-    printf "\n%s\n" "$(_fetchCommitRange "false" "$start_tag" "$final_tag")"
+    printf "\n%s\n" "$(fetch_commit_range "false" "$start_tag" "$final_tag")"
 }
 
 commitList() {
@@ -362,9 +362,9 @@ commitList() {
         # if there is not tag after $start_commit,
         # output directly without fetch all tags
         if [[ "$list_style" == true ]]; then
-            _formatCommitPlain "${start_commit}~"
+            format_commit_plain "${start_commit}~"
         else
-            _formatCommitPretty "$title_tag" "$title_date" "$start_commit~"
+            format_commit_pretty "$title_tag" "$title_date" "$start_commit~"
         fi
 
         return
@@ -391,36 +391,36 @@ commitList() {
     #
 
     # fetch our tags
-    local _ref _date _tag _tab='%x09'
-    local _tag_regex='tag: *'
-    while IFS=$'\t' read _ref _date _tag; do
-        [[ -z "${_tag}" ]] && continue
+    local ref date tag tab='%x09'
+    local tag_regex='tag: *'
+    while IFS=$'\t' read ref date tag; do
+        [[ -z "${tag}" ]] && continue
         # strip out tags form ()
         # git v2.2.0+ supports '%D', like '%d' without the " (", ")" wrapping. One day we should use it instead.
-        _tag="${_tag# }"
-        _tag="${_tag//[()]/}"
+        tag="${tag# }"
+        tag="${tag//[()]/}"
         # trap tag if it points to last commit (HEAD)
-        _tag="${_tag#HEAD*, }"
+        tag="${tag#HEAD*, }"
         # strip out branches
-        [[ ! "${_tag}" =~ ${_tag_regex} ]] && continue
+        [[ ! "${tag}" =~ ${tag_regex} ]] && continue
         # strip out any additional tags pointing to same commit, remove tag label
-        _tag="${_tag%%,*}"
-        _tag="${_tag#tag: }"
-        if [[ "$(_valueForKeyFakeAssocArray "pro_release" "${option[*]}")" == true && "$(grep -E "^v([0-9])+.([0-9])+.([0-9])+$" <<<"${_tag}")" != "${_tag}" ]]; then
+        tag="${tag%%,*}"
+        tag="${tag#tag: }"
+        if [[ "$(value_for_key_fake_assoc_array "pro_release" "${option[*]}")" == true && "$(grep -E "^v([0-9])+.([0-9])+.([0-9])+$" <<<"${tag}")" != "${tag}" ]]; then
             continue
         fi
-        tags_list+=("${_tag}:${_ref}=>${_date}")
-        tags_list_keys+=("${_tag}")
-    done <<<"$(git log --tags --simplify-by-decoration --date="short" --pretty="format:%h${_tab}%ad${_tab}%d")"
+        tags_list+=("${tag}:${ref}=>${date}")
+        tags_list_keys+=("${tag}")
+    done <<<"$(git log --tags --simplify-by-decoration --date="short" --pretty="format:%h${tab}%ad${tab}%d")"
     IFS="$defaultIFS"
-    unset _tag_regex
-    unset _ref _date _tag _tab
+    unset tag_regex
+    unset ref date tag tab
 
-    local _tags_list_keys_length="${#tags_list_keys[@]}"
-    if [[ "${_tags_list_keys_length}" -eq 0 ]]; then
-        unset _tags_list_keys_length
+    local tags_list_keys_length="${#tags_list_keys[@]}"
+    if [[ "${tags_list_keys_length}" -eq 0 ]]; then
+        unset tags_list_keys_length
         if [[ "$list_style" == true ]]; then
-            printf "%s" "$(_fetchCommitRange "true")"
+            printf "%s" "$(fetch_commit_range "true")"
         else
             local title="$title_tag ( $title_date )"
             local title_underline=""
@@ -432,27 +432,27 @@ commitList() {
             unset i
 
             printf '\n%s\n%s\n' "$title" "$title_underline"
-            printf "\n%s\n" "$(_fetchCommitRange "true")"
+            printf "\n%s\n" "$(fetch_commit_range "true")"
         fi
         return
     fi
 
-    local _final_tag_found=false
-    local _start_tag_found=false
+    local final_tag_found=false
+    local start_tag_found=false
     local i
-    for ((i = 0; i < "${_tags_list_keys_length}"; i++)); do
-        local __curr_tag="${tags_list_keys[$i]}"
-        local __prev_tag="${tags_list_keys[$i + 1]:-null}"
-        local __curr_date="$(_valueForKeyFakeAssocArray "${__curr_tag}" "${tags_list[*]}")"
-        __curr_date="${__curr_date##*=>}"
+    for ((i = 0; i < "${tags_list_keys_length}"; i++)); do
+        local curr_tag="${tags_list_keys[$i]}"
+        local prev_tag="${tags_list_keys[$i + 1]:-null}"
+        local curr_date="$(value_for_key_fake_assoc_array "${curr_tag}" "${tags_list[*]}")"
+        curr_date="${curr_date##*=>}"
 
         # output latest commits, up until the most-recent tag, these are all
         # new commits made since the last tagged commit.
         if [[ $i -eq 0 && (-z "$final_tag" || "$final_tag" == "null") ]]; then
             if [[ "$list_style" == true ]]; then
-                _formatCommitPlain "${__curr_tag}" >>"$tmpfile"
+                format_commit_plain "${curr_tag}" >>"$tmpfile"
             else
-                _formatCommitPretty "$title_tag" "$title_date" "${__curr_tag}"
+                format_commit_pretty "$title_tag" "$title_date" "${curr_tag}"
             fi
         fi
 
@@ -461,28 +461,28 @@ commitList() {
 
         # find the specified final tag, continue until found
         if [[ -n "$final_tag" && "$final_tag" != "null" ]]; then
-            [[ "$final_tag" == "${__curr_tag}" ]] && _final_tag_found=true
-            [[ "$final_tag" != "${__curr_tag}" && "${_final_tag_found}" == false ]] && continue
+            [[ "$final_tag" == "${curr_tag}" ]] && final_tag_found=true
+            [[ "$final_tag" != "${curr_tag}" && "${final_tag_found}" == false ]] && continue
         fi
 
         # find the specified start tag, break when found
         if [[ -n "$start_tag" ]]; then
-            [[ "$start_tag" == "${__curr_tag}" ]] && _start_tag_found=true
-            if [[ "${_start_tag_found}" == true ]]; then
+            [[ "$start_tag" == "${curr_tag}" ]] && start_tag_found=true
+            if [[ "${start_tag_found}" == true ]]; then
                 if [[ -n "$start_commit" ]]; then
 
                     # output commits after start_commit to its closest tag
                     if [[ "$list_style" == true ]]; then
-                        _formatCommitPlain "$start_commit~" "${__curr_tag}"
+                        format_commit_plain "$start_commit~" "${curr_tag}"
                     else
-                        _formatCommitPretty "${__curr_tag}" "${__curr_date}" \
-                            "$start_commit~" "${__curr_tag}"
+                        format_commit_pretty "${curr_tag}" "${curr_date}" \
+                            "$start_commit~" "${curr_tag}"
                     fi
 
                     break
                 fi
 
-                [[ "$start_tag" != "${__curr_tag}" ]] && break
+                [[ "$start_tag" != "${curr_tag}" ]] && break
 
             fi
         fi
@@ -490,23 +490,23 @@ commitList() {
         # output commits made between prev_tag and curr_tag, these are all of the
         # commits related to the tag of interest.
         if [[ "$list_style" == true ]]; then
-            _formatCommitPlain "${__prev_tag}" "${__curr_tag}"
+            format_commit_plain "${prev_tag}" "${curr_tag}"
         else
-            _formatCommitPretty "${__curr_tag}" "${__curr_date}" "${__prev_tag}" "${__curr_tag}"
+            format_commit_pretty "${curr_tag}" "${curr_date}" "${prev_tag}" "${curr_tag}"
         fi
-        unset __curr_date
-        unset __prev_tag
-        unset __curr_tag
+        unset curr_date
+        unset prev_tag
+        unset curr_tag
     done
     unset i
-    unset _start_tag_found
-    unset _final_tag_found
-    unset _tags_list_keys_length
+    unset start_tag_found
+    unset final_tag_found
+    unset tags_list_keys_length
 
     return
 }
 
-commitListPlain() {
+commit_list_plain() {
     local list_all="${1:-false}"
     local start_tag="$2"
     local final_tag="$3"
@@ -515,7 +515,7 @@ commitListPlain() {
     commitList "$list_all" "" "$start_tag" "$final_tag" "true" "$start_commit"
 }
 
-commitListPretty() {
+commit_list_pretty() {
     local list_all="${1:-false}"
     local title_tag="$2"
     local start_tag="$3"
@@ -527,7 +527,7 @@ commitListPretty() {
         "$start_commit"
 }
 
-_exit() {
+exit_all() {
     local pid_list=()
     local defaultIFS="$IFS"
     local IFS="$defaultIFS"
@@ -553,10 +553,10 @@ _exit() {
     )
     IFS="$defaultIFS"
 
-    local _pid
-    for _pid in "${pid_list[@]}"; do
-        echo "killing: ${_pid}"
-        kill -TERM ${_pid}
+    local pid
+    for pid in "${pid_list[@]}"; do
+        echo "killing: ${pid}"
+        kill -TERM ${pid}
     done
 
     wait
@@ -564,7 +564,7 @@ _exit() {
     exit 1
 }
 
-trap '_exit' SIGINT SIGQUIT SIGTERM
+trap 'exit_all' SIGINT SIGQUIT SIGTERM
 
 main() {
     # empty string and "null" mean two different things!
@@ -597,29 +597,29 @@ main() {
     while [ "$1" != "" ]; do
         case $1 in
         -a | --all)
-            option=($(_setValueForKeyFakeAssocArray "list_all" true "${option[*]}"))
+            option=($(set_value_for_key_fake_assoc_array "list_all" true "${option[*]}"))
             ;;
         -l | --list)
-            option=($(_setValueForKeyFakeAssocArray "list_style" true "${option[*]}"))
+            option=($(set_value_for_key_fake_assoc_array "list_style" true "${option[*]}"))
             ;;
         -t | --tag)
-            option=($(_setValueForKeyFakeAssocArray "title_tag" "$2" "${option[*]}"))
+            option=($(set_value_for_key_fake_assoc_array "title_tag" "$2" "${option[*]}"))
             shift
             ;;
         -f | --final-tag)
-            option=($(_setValueForKeyFakeAssocArray "final_tag" "$2" "${option[*]}"))
+            option=($(set_value_for_key_fake_assoc_array "final_tag" "$2" "${option[*]}"))
             shift
             ;;
         -s | --start-tag)
-            option=($(_setValueForKeyFakeAssocArray "start_tag" "$2" "${option[*]}"))
+            option=($(set_value_for_key_fake_assoc_array "start_tag" "$2" "${option[*]}"))
             shift
             ;;
         --start-commit)
-            option=($(_setValueForKeyFakeAssocArray "start_commit" "$2" "${option[*]}"))
+            option=($(set_value_for_key_fake_assoc_array "start_commit" "$2" "${option[*]}"))
             shift
             ;;
         -r | --pro-release)
-            option=($(_setValueForKeyFakeAssocArray "pro_release" true "${option[*]}"))
+            option=($(set_value_for_key_fake_assoc_array "pro_release" true "${option[*]}"))
             shift
             ;;
         -n | --no-merges)
@@ -629,36 +629,36 @@ main() {
             GIT_LOG_OPTS='--merges'
             ;;
         -p | --prune-old)
-            option=($(_setValueForKeyFakeAssocArray "prune_old" true "${option[*]}"))
+            option=($(set_value_for_key_fake_assoc_array "prune_old" true "${option[*]}"))
             ;;
         -x | --stdout)
-            option=($(_setValueForKeyFakeAssocArray "use_stdout" true "${option[*]}"))
+            option=($(set_value_for_key_fake_assoc_array "use_stdout" true "${option[*]}"))
             ;;
         -h | ? | help | --help)
-            _usage
+            usage
             exit 1
             ;;
         *)
-            [[ "${1:0:1}" == '-' ]] && _error "Invalid option: $1" && _usage && exit 1
-            option=($(_setValueForKeyFakeAssocArray "output_file" "$1" "${option[*]}"))
+            [[ "${1:0:1}" == '-' ]] && log_error "Invalid option: $1" && usage && exit 1
+            option=($(set_value_for_key_fake_assoc_array "output_file" "$1" "${option[*]}"))
             ;;
         esac
         shift
     done
 
-    local _tag="$(_valueForKeyFakeAssocArray "start_tag" "${option[*]}")"
-    local start_commit="$(_valueForKeyFakeAssocArray "start_commit" "${option[*]}")"
+    local tag="$(value_for_key_fake_assoc_array "start_tag" "${option[*]}")"
+    local start_commit="$(value_for_key_fake_assoc_array "start_commit" "${option[*]}")"
 
     if [[ -n "$start_commit" ]]; then
-        if [[ -n "${_tag}" ]]; then
-            _error "--start-tag could not use with --start-commit!"
+        if [[ -n "${tag}" ]]; then
+            log_error "--start-tag could not use with --start-commit!"
             return 1
         fi
 
         start_commit="$start_commit"
         start_tag="$(git describe --tags --contains "$start_commit" 2>/dev/null || echo 'null')"
         if [[ -z "$start_tag" ]]; then
-            _error "Could find the associative tag for the start-commit!"
+            log_error "Could find the associative tag for the start-commit!"
             return 1
         fi
 
@@ -667,52 +667,52 @@ main() {
         # also remove "^0" added sometimes when tag matched exactly
         start_tag="${start_tag%%^0}"
 
-    elif [[ -n "${_tag}" ]]; then
-        start_tag="$(git describe --tags --abbrev=0 "${_tag}" 2>/dev/null)"
+    elif [[ -n "${tag}" ]]; then
+        start_tag="$(git describe --tags --abbrev=0 "${tag}" 2>/dev/null)"
         if [[ -z "$start_tag" ]]; then
-            _error "Specified start-tag does not exist!"
+            log_error "Specified start-tag does not exist!"
             return 1
         fi
     fi
 
-    if [[ -n "${_tag}" ]]; then
+    if [[ -n "${tag}" ]]; then
         if [[ -n "$start_commit" ]]; then
-            _error "--start-tag could not use with --start-commit!"
+            log_error "--start-tag could not use with --start-commit!"
             return 1
         fi
 
     fi
-    unset _tag
+    unset tag
 
-    local _tag="$(_valueForKeyFakeAssocArray "final_tag" "${option[*]}")"
-    if [[ -n "${_tag}" ]]; then
-        final_tag="$(git describe --tags --abbrev=0 "${_tag}" 2>/dev/null)"
+    local tag="$(value_for_key_fake_assoc_array "final_tag" "${option[*]}")"
+    if [[ -n "${tag}" ]]; then
+        final_tag="$(git describe --tags --abbrev=0 "${tag}" 2>/dev/null)"
         if [[ -z "$final_tag" ]]; then
-            _error "Specified final-tag does not exist!"
+            log_error "Specified final-tag does not exist!"
             return 1
         fi
     fi
-    unset _tag
+    unset tag
 
     #
     # generate changelog
     #
-    local tmpfile="$(_git_extra_mktemp)"
-    local changelog="$(_valueForKeyFakeAssocArray "output_file" "${option[*]}")"
-    local title_tag="$(_valueForKeyFakeAssocArray "title_tag" "${option[*]}")"
+    local tmpfile="$(git_extra_mktemp)"
+    local changelog="$(value_for_key_fake_assoc_array "output_file" "${option[*]}")"
+    local title_tag="$(value_for_key_fake_assoc_array "title_tag" "${option[*]}")"
 
-    if [[ "$(_valueForKeyFakeAssocArray "list_style" "${option[*]}")" == true ]]; then
-        if [[ "$(_valueForKeyFakeAssocArray "list_all" "${option[*]}")" == true ]]; then
-            commitListPlain "true" >>"$tmpfile"
+    if [[ "$(value_for_key_fake_assoc_array "list_style" "${option[*]}")" == true ]]; then
+        if [[ "$(value_for_key_fake_assoc_array "list_all" "${option[*]}")" == true ]]; then
+            commit_list_plain "true" >>"$tmpfile"
         else
-            commitListPlain "false" "$start_tag" "$final_tag" \
+            commit_list_plain "false" "$start_tag" "$final_tag" \
                 "$start_commit" >>"$tmpfile"
         fi
     else
-        if [[ "$(_valueForKeyFakeAssocArray "list_all" "${option[*]}")" == true ]]; then
-            commitListPretty "true" "$title_tag" >>"$tmpfile"
+        if [[ "$(value_for_key_fake_assoc_array "list_all" "${option[*]}")" == true ]]; then
+            commit_list_pretty "true" "$title_tag" >>"$tmpfile"
         else
-            commitListPretty "false" "$title_tag" "$start_tag" "$final_tag" \
+            commit_list_pretty "false" "$title_tag" "$start_tag" "$final_tag" \
                 "$start_commit" >>"$tmpfile"
         fi
     fi
@@ -725,12 +725,12 @@ main() {
     fi
 
     # append existing changelog?
-    if [[ -f "$changelog" && "$(_valueForKeyFakeAssocArray "prune_old" "${option[*]}")" == false ]]; then
+    if [[ -f "$changelog" && "$(value_for_key_fake_assoc_array "prune_old" "${option[*]}")" == false ]]; then
         cat "$changelog" >>"$tmpfile"
     fi
 
     # output file to stdout or move into place
-    if [[ "$(_valueForKeyFakeAssocArray "use_stdout" "${option[*]}")" == true ]]; then
+    if [[ "$(value_for_key_fake_assoc_array "use_stdout" "${option[*]}")" == true ]]; then
         cat "$tmpfile"
         rm -f "$tmpfile"
     else
