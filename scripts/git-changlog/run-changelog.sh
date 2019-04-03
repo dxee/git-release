@@ -620,7 +620,6 @@ main() {
             ;;
         -r | --pro-release)
             option=($(set_value_for_key_fake_assoc_array "pro_release" true "${option[*]}"))
-            shift
             ;;
         -n | --no-merges)
             GIT_LOG_OPTS='--no-merges'
