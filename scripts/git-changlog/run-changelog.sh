@@ -43,6 +43,7 @@ OPTIONS:
   -p, --prune-old           Replace existing Changelog entirely with new content
   -x, --stdout              Write output to stdout instead of to a Changelog file
   -u, --author-t
+  -p, --pro-release         Production release
   -h, --help, ?             Show this message
 EOF
 }
@@ -405,7 +406,9 @@ commitList() {
         # strip out any additional tags pointing to same commit, remove tag label
         _tag="${_tag%%,*}"
         _tag="${_tag#tag: }"
-        # add tag to assoc array; copy tag to tag_list_keys for ordered iteration
+        if [[ "$(_valueForKeyFakeAssocArray "pro_release" "${option[*]}")" == true && "$(grep -qE "^v([0-9])+.([0-9])+.([0-9])+$" <<<"${_tag}")" != "${_tag}" ]]; then
+            continue
+        fi
         tags_list+=("${_tag}:${_ref}=>${_date}")
         tags_list_keys+=("${_tag}")
     done <<<"$(git log --tags --simplify-by-decoration --date="short" --pretty="format:%h${_tab}%ad${_tab}%d")"
@@ -578,6 +581,7 @@ main() {
         "output_file:"
         "use_stdout:false"
         "prune_old:false"
+        "pro_release:true"
     )
 
     #
@@ -612,6 +616,10 @@ main() {
             ;;
         --start-commit)
             option=($(_setValueForKeyFakeAssocArray "start_commit" "$2" "${option[*]}"))
+            shift
+            ;;
+        -r | --pro-release)
+            option=($(_setValueForKeyFakeAssocArray "pro_release" true "${option[*]}"))
             shift
             ;;
         -n | --no-merges)
