@@ -1,4 +1,22 @@
 
+v1.0.31 (2019-04-03)
+====================
+
+
+## Bug Fixes
+* **release** Remove unused function ([@blling](https://github.com/blling) in [d6866a0](https://github.com/dxee/git-release/commit/d6866a0))
+
+## Chores
+* **release** Release 1.0.31.alpha3 ([@blling](https://github.com/blling) in [3c2a430](https://github.com/dxee/git-release/commit/3c2a430))
+* **release** Release 1.0.31.alpha2 ([@blling](https://github.com/blling) in [526a1fe](https://github.com/dxee/git-release/commit/526a1fe))
+
+## Documentations
+* **release** Add hotfix start ([@blling](https://github.com/blling) in [b3dbf26](https://github.com/dxee/git-release/commit/b3dbf26))
+* Add some usage docs ([@blling](https://github.com/blling) in [ddb1e6e](https://github.com/dxee/git-release/commit/ddb1e6e))
+
+## Others
+* Merge branch 'hotfix-1.0.30' into develop ([@blling](https://github.com/blling) in [48a1d60](https://github.com/dxee/git-release/commit/48a1d60))
+
 v1.0.31.alpha2 (2019-04-03)
 ===========================
 
