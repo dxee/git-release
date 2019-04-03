@@ -1,4 +1,11 @@
 
+v1.0.27 (2019-04-03)
+====================
+
+
+## Chores
+* **release** Nochange log by default ([@blling](https://rdgit.travelsky.com/users/blling) in [2cc2644](https://rdgit.travelsky.com/projects/DSS/repos/dss_v1_nrts_etl/commits/2cc2644))
+
 v1.0.25 (2019-04-03)
 ====================
 
