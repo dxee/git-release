@@ -1,4 +1,11 @@
 
+v2.0.0.alpha1 (2019-04-03)
+==========================
+
+
+## Refactors
+* **release** Some refactor of git-release and git-changelog ([@blling](https://github.com/blling) in [db4fbfc](https://github.com/dxee/git-release/commit/db4fbfc))
+
 v1.0.19 (2019-04-02)
 ====================
 
