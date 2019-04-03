@@ -3,12 +3,6 @@ set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ $# -ne 2 ]; then
-  echo 'Usage: run-release.sh <release-version> <next-snapshot-version>'
-  echo 'For example: run-release.sh 0.1.0 0.2.0'
-  exit 2
-fi
-
 if [ -f "${SCRIPT_PATH}/.common-util.sh" ]; then
   # shellcheck source=.common-util.sh
   source "${SCRIPT_PATH}/.common-util.sh"
@@ -17,8 +11,31 @@ else
   exit 1
 fi
 
-RELEASE_VERSION=$1
-NEXT_VERSION=$2
+CHANGELOG=""
+RELEASE_VERSION=""
+NEXT_VERSION=""
+
+while [ "$1" != "" ]; do
+  case $1 in
+  -c | --chglog)
+    CHANGELOG="Y"
+    ;;
+  -r | --releaseversion)
+    RELEASE_VERSION="$2"
+    shift
+    ;;
+  -n | --nextversion)
+    NEXT_VERSION="$2"
+    shift
+    ;;
+  *)
+    echo 'Usage: run-release.sh [--chglog] <-r <version>> <-n <version>>'
+    exit 2
+    ;;
+  esac
+  shift
+done
+
 RELEASE_BRANCH=$(format_release_branch_name "$RELEASE_VERSION")
 RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
 NEXT_SNAPSHOT_VERSION=$(format_snapshot_version "${NEXT_VERSION}")
@@ -46,9 +63,11 @@ git checkout -b "${RELEASE_BRANCH}" "${DEVELOP_BRANCH}"
 "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
 
 # commit release versions
-RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${NEXT_VERSION}")
-git add .
-git commit -am "${RELEASE_COMMIT_MESSAGE}"
+if [ "${CHANGELOG}"="Y" ]; then
+  RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${NEXT_VERSION}")
+  git add .
+  git commit -am "${RELEASE_COMMIT_MESSAGE}"
+fi
 
 # merge current develop (over release branch) into master
 git checkout "${MASTER_BRANCH}" && git pull "${REMOTE_REPO}"

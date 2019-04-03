@@ -3,13 +3,6 @@ set -e
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ $# -ne 2 ]; then
-  echo 'Usage: hotfix_finish.sh <hotfix-version> <next-snapshot-version>'
-  echo 'For example:'
-  echo 'hotfix_finish.sh 0.2.1 0.3.0'
-  exit 2
-fi
-
 # Necessary to calculate develop/master branch name
 RELEASE_VERSION=${HOTFIX_VERSION}
 
@@ -21,13 +14,35 @@ else
   exit 1
 fi
 
-HOTFIX_VERSION=$1
-NEXT_VERSION=$2
-HOTFIX_TAG=$(format_release_tag "${HOTFIX_VERSION}")
+CHANGELOG=""
+HOTFIX_VERSION=""
+NEXT_VERSION=""
 
 unset RELEASE_VERSION
 
+while [ "$1" != "" ]; do
+  case $1 in
+  -c | --chglog)
+    CHANGELOG="Y"
+    ;;
+  -x | --hotfixversion)
+    HOTFIX_VERSION="$2"
+    shift
+    ;;
+  -n | --nextversion)
+    NEXT_VERSION="$2"
+    shift
+    ;;
+  *)
+    echo 'Usage: run-hotfix-release.sh [--chglog] <-x <version>> <-n <version>>'
+    exit 2
+    ;;
+  esac
+  shift
+done
+
 HOTFIX_BRANCH=$(format_hotfix_branch_name "${HOTFIX_VERSION}")
+HOTFIX_TAG=$(format_release_tag "${HOTFIX_VERSION}")
 
 if [ ! "${HOTFIX_BRANCH}" = "${CURRENT_BRANCH}" ]; then
   echo "Please checkout the branch '$HOTFIX_BRANCH' before processing this hotfix release."
@@ -38,12 +53,15 @@ check_local_workspace_state "run-hotfix-release"
 
 # use hotfix branch
 git checkout "${HOTFIX_BRANCH}" && git pull "${REMOTE_REPO}"
-# add changelog
-HOTFIX_RELEASE_COMMIT_MESSAGE=$(get_release_hotfix_commit_message "${HOTFIX_VERSION}")
 
-"${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${HOTFIX_TAG}" && cd "${GIT_REPO_DIR}"
-git add .
-git commit -m "${HOTFIX_RELEASE_COMMIT_MESSAGE}"
+# add changelog
+if [ "${CHANGELOG}"="Y" ]; then
+  HOTFIX_RELEASE_COMMIT_MESSAGE=$(get_release_hotfix_commit_message "${HOTFIX_VERSION}")
+
+  "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${HOTFIX_TAG}" && cd "${GIT_REPO_DIR}"
+  git add .
+  git commit -m "${HOTFIX_RELEASE_COMMIT_MESSAGE}"
+fi
 
 # merge current hotfix into master
 git checkout "${MASTER_BRANCH}" && git pull "${REMOTE_REPO}"

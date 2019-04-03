@@ -1,7 +1,7 @@
 DEF_TAG_RECENT="n.n.n"
 GIT_LOG_OPTS=""
-GIT_LOG_AUTHOR="https://github.com/"
-GIT_LOG_COMMITS="https://github.com/dxee/git-release/commit/"
+GIT_LOG_AUTHOR="https://rdgit.travelsky.com/users/"
+GIT_LOG_COMMITS="https://rdgit.travelsky.com/projects/DSS/repos/dss_v1_nrts_etl/commits/"
 GIT_LOG_FORMAT='%an|%h|%s'
 GIT_LOG_DATE_FORMAT='%Y-%m-%d %H:%M:%S'
 GIT_EDITOR="$(git var GIT_EDITOR)"
@@ -405,11 +405,9 @@ commitList() {
         # strip out any additional tags pointing to same commit, remove tag label
         _tag="${_tag%%,*}"
         _tag="${_tag#tag: }"
-        if grep -qE "^v([0-9])+.([0-9])+.([0-9])+$" <<<"${_tag}"; then
-            # add tag to assoc array; copy tag to tag_list_keys for ordered iteration
-            tags_list+=("${_tag}:${_ref}=>${_date}")
-            tags_list_keys+=("${_tag}")
-        fi
+        # add tag to assoc array; copy tag to tag_list_keys for ordered iteration
+        tags_list+=("${_tag}:${_ref}=>${_date}")
+        tags_list_keys+=("${_tag}")
     done <<<"$(git log --tags --simplify-by-decoration --date="short" --pretty="format:%h${_tab}%ad${_tab}%d")"
     IFS="$defaultIFS"
     unset _tag_regex
