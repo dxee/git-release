@@ -58,7 +58,7 @@ if git rev-parse --verify "${RELEASE_TAG}"; then
   # delete local tag
   git tag -d "${RELEASE_TAG}"
   # Also delete remote tag
-  git push origin -d refs/tags/"${RELEASE_TAG}"
+  git push "${REMOTE_REPO}" -d refs/tags/"${RELEASE_TAG}"
 fi
 
 # return to previous branch

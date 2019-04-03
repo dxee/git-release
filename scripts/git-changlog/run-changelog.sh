@@ -181,7 +181,10 @@ _filter_by_group() {
         echo "Nothing to filter on _filter_by_group!"
         return 1 #failure
     fi
-    echo "$1" | grep "$2" | head -1
+    local comment="${1#*|}"
+    comment="${comment#*|}"
+    comment="$(echo "$comment" | sed 's/^[ \t]*//g' | grep "^$2" | head -1)"
+    [ -n "$comment" ] && echo "$1"
 }
 
 _is_grouped_comment() {
@@ -286,10 +289,10 @@ _fetchCommitRange() {
         local __commit_author="${_commit_list%%|*}"
         local __commit_hash="${_commit_list#*|}"
         __commit_hash="${__commit_hash%%|*}"
-        while read __xx; do
-            local is_grouped_comment="$(_is_grouped_comment "$__xx")"
+        while read __commit_comment_body; do
+            local is_grouped_comment="$(_is_grouped_comment "$__commit_comment_body")"
             if [ $is_grouped_comment -eq 1 ]; then
-                group_list+=("$__commit_author|$__commit_hash|$__xx")
+                group_list+=("$__commit_author|$__commit_hash|$__commit_comment_body")
             fi
         done <<<"$(
             git log -1 --pretty=format:%b $__commit_hash
@@ -402,9 +405,11 @@ commitList() {
         # strip out any additional tags pointing to same commit, remove tag label
         _tag="${_tag%%,*}"
         _tag="${_tag#tag: }"
-        # add tag to assoc array; copy tag to tag_list_keys for ordered iteration
-        tags_list+=("${_tag}:${_ref}=>${_date}")
-        tags_list_keys+=("${_tag}")
+        if grep -qE "^v([0-9])+.([0-9])+.([0-9])+$" <<<"${_tag}"; then
+            # add tag to assoc array; copy tag to tag_list_keys for ordered iteration
+            tags_list+=("${_tag}:${_ref}=>${_date}")
+            tags_list_keys+=("${_tag}")
+        fi
     done <<<"$(git log --tags --simplify-by-decoration --date="short" --pretty="format:%h${_tab}%ad${_tab}%d")"
     IFS="$defaultIFS"
     unset _tag_regex

@@ -34,7 +34,7 @@ if [ ! "${HOTFIX_BRANCH}" = "${CURRENT_BRANCH}" ]; then
   exit 1
 fi
 
-check_local_workspace_state "hotfix_finish"
+check_local_workspace_state "run-hotfix-release"
 
 # use hotfix branch
 git checkout "${HOTFIX_BRANCH}" && git pull "${REMOTE_REPO}"
@@ -60,6 +60,7 @@ if git merge --no-edit "${HOTFIX_BRANCH}"; then
   git push --atomic ${REMOTE_REPO} ${MASTER_BRANCH} ${DEVELOP_BRANCH} ${HOTFIX_BRANCH} --follow-tags
   if [ $? -eq 0 ]; then
     git push "${REMOTE_REPO}" -d "${HOTFIX_BRANCH}"
+    git branch -D "${HOTFIX_BRANCH}"
     echo "# Okay, now you've got a new tag ${HOTFIX_VERSION} and commits on ${MASTER_BRANCH} and ${DEVELOP_BRANCH}"
   fi
 else

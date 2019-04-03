@@ -28,7 +28,7 @@ if [ ! "${CURRENT_BRANCH}" = "${DEVELOP_BRANCH}" ]; then
   exit 1
 fi
 
-check_local_workspace_state "release"
+check_local_workspace_state "run-release"
 
 ## update local develop branch
 git checkout "${DEVELOP_BRANCH}" && git pull "${REMOTE_REPO}"
@@ -74,6 +74,7 @@ if git merge --no-edit "${RELEASE_BRANCH}"; then
   # Nope, doing that automtically is too dangerous. But the command is great!
   git push --atomic ${REMOTE_REPO} ${MASTER_BRANCH} ${DEVELOP_BRANCH} --follow-tags
   if [ $? -eq 0 ]; then
+    git branch -D "${RELEASE_BRANCH}"
     echo "# Okay, now you've got a new tag ${RELEASE_VERSION} and commits on ${MASTER_BRANCH} and ${DEVELOP_BRANCH}."
   fi
 else

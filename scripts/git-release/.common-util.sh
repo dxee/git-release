@@ -22,7 +22,7 @@ export CURRENT_BRANCH
 GIT_REPO_DIR=$(git rev-parse --show-toplevel)
 export GIT_REPO_DIR
 
-function check_local_workspace_state() {
+check_local_workspace_state() {
   if ! git diff-index --quiet HEAD --; then
     echo "This script is only safe when your have a clean workspace."
     echo "Please clean your workspace by stashing or committing and pushing changes before processing this $1 script."
@@ -30,7 +30,7 @@ function check_local_workspace_state() {
   fi
 }
 
-function is_branch_existing() {
+is_branch_existing() {
   if git branch -a --list | grep "$1"; then
     return 0
   else
@@ -38,7 +38,7 @@ function is_branch_existing() {
   fi
 }
 
-function is_workspace_clean() {
+is_workspace_clean() {
   if git diff-files --quiet --ignore-submodules --; then
     return 0
   else
@@ -46,7 +46,7 @@ function is_workspace_clean() {
   fi
 }
 
-function is_workspace_synced() {
+is_workspace_synced() {
   if test "$(git rev-parse "@{u}")" = "$(git rev-parse HEAD)"; then
     return 0
   else

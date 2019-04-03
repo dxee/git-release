@@ -11,7 +11,6 @@ if [ $# -ne 1 ]; then
 fi
 
 HOTFIX_VERSION=$1
-HOTFIX_SNAPSHOT_VERSION="${HOTFIX_VERSION}-SNAPSHOT"
 
 # Necessary to calculate develop/master branch name
 RELEASE_VERSION=${HOTFIX_VERSION}
@@ -30,17 +29,11 @@ HOTFIX_BRANCH=$(format_hotfix_branch_name "${HOTFIX_VERSION}")
 
 check_local_workspace_state "run-hotfix-start"
 
-git checkout "${MASTER_BRANCH}" && git pull "${REMOTE_REPO}" && git checkout -b "${HOTFIX_BRANCH}"
-
-if is_workspace_clean; then
-  echo "Nothing to commit..."
-else
-  # commit hotfix versions
-  START_HOTFOX_COMMIT_MESSAGE=$(get_start_hotfix_commit_message "${HOTFIX_SNAPSHOT_VERSION}")
-  git commit -am "${START_HOTFOX_COMMIT_MESSAGE}"
-fi
-
-git push --set-upstream ${REMOTE_REPO} ${HOTFIX_BRANCH}
-if [ $? -eq 0 ]; then
-  echo "# Okay, now you've got a new hotfix branch called ${HOTFIX_BRANCH}"
+# delete hotfix branch
+if git rev-parse --verify "${HOTFIX_BRANCH}"; then
+  git branch -d "${HOTFIX_BRANCH}"
+  git push "${REMOTE_REPO}" -d "${HOTFIX_BRANCH}"
+  if [ $? -eq 0 ]; then
+    echo "# Okay, now you've delete a hotfix branch called ${HOTFIX_BRANCH}"
+  fi
 fi
