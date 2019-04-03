@@ -1,4 +1,11 @@
 
+v1.0.28.aplha7 (2019-04-03)
+===========================
+
+
+## Others
+* test ([@blling](https://github.com/blling) in [e0a5c08](https://github.com/dxee/git-release/commit/e0a5c08))
+
 v1.0.28.aplha6 (2019-04-03)
 ===========================
 
