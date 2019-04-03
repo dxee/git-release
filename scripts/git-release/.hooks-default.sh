@@ -59,7 +59,7 @@ format_hotfix_branch_name() {
 # Builds the commit message used for your release commit
 # Parameter $1 - release version as text
 get_release_commit_message() {
-  echo "chore(release): Prepare release $1"
+  echo "chore(release): Release $1"
 }
 
 # Builds the commit message used for your commit which setups the next snapshot version
@@ -71,7 +71,7 @@ get_next_snapshot_commit_message() {
 # Builds the tag message used for your release tag
 # Parameter $1 - release version as text
 get_release_tag_message() {
-  echo "chore(release): Release $1"
+  echo "chore(release): Release tag $1"
 }
 
 # Builds the commit message for your commit which setups the hotfix branch
@@ -89,12 +89,5 @@ get_release_hotfix_commit_message() {
 # Builds the tag message used for your hotfix release tag
 # Parameter $1 - hotfix release version
 get_hotfix_relesae_tag_message() {
-  echo "chore(release): Release $1"
-}
-
-# Builds the commit message used for setup the next snapshot version after hotfix is released
-# Parameter $1 - next snapshot version
-# Parameter $2 - released hotfix version
-get_next_snapshot_commit_message_after_hotfix() {
-  echo "chore(release): Start next iteration with $1 after hotfix $2"
+  echo "chore(release): Release hotfix tag $1"
 }
