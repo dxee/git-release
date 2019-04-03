@@ -1,7 +1,7 @@
 DEF_TAG_RECENT="n.n.n"
 GIT_LOG_OPTS=""
-GIT_LOG_AUTHOR="https://rdgit.travelsky.com/users/"
-GIT_LOG_COMMITS="https://rdgit.travelsky.com/projects/DSS/repos/dss_v1_nrts_etl/commits/"
+GIT_LOG_AUTHOR="https://github.com/"
+GIT_LOG_COMMITS="https://github.com/dxee/git-release/commit/"
 GIT_LOG_FORMAT='%an|%h|%s'
 GIT_LOG_DATE_FORMAT='%Y-%m-%d %H:%M:%S'
 GIT_EDITOR="$(git var GIT_EDITOR)"
