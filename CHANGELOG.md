@@ -1,4 +1,11 @@
 
+v2.0.0.alpha5 (2019-04-03)
+==========================
+
+
+## Chores
+* **release** Prepare release 2.0.0.alpha5 ([@blling](https://github.com/blling) in [187bf03](https://github.com/dxee/git-release/commit/187bf03))
+
 v2.0.0.alpha4 (2019-04-03)
 ==========================
 
