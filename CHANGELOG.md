@@ -1,4 +1,11 @@
 
+v2.0.0.alpha3 (2019-04-03)
+==========================
+
+
+## Chores
+* **release** Prepare release 2.0.0.alpha3 ([@blling](https://github.com/blling) in [2caea40](https://github.com/dxee/git-release/commit/2caea40))
+
 v2.0.0.alpha2 (2019-04-03)
 ==========================
 
