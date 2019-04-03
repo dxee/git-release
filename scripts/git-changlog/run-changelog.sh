@@ -581,7 +581,7 @@ main() {
         "output_file:"
         "use_stdout:false"
         "prune_old:false"
-        "pro_release:true"
+        "pro_release:false"
     )
 
     #
