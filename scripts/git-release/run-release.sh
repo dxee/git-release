@@ -59,12 +59,11 @@ fi
 # checkout release branch
 git checkout -b "${RELEASE_BRANCH}" "${DEVELOP_BRANCH}"
 
-# add changelog
-"${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
-
 # commit release versions
 if [[ "${CHANGELOG}" = "Y" ]]; then
   RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${NEXT_VERSION}")
+  
+  "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
   git add .
   git commit -am "${RELEASE_COMMIT_MESSAGE}"
 fi

@@ -1,4 +1,11 @@
 
+v1.0.25 (2019-04-03)
+====================
+
+
+## Chores
+* **release** Prepare release 1.0.25 ([@blling](https://rdgit.travelsky.com/users/blling) in [ada28cb](https://rdgit.travelsky.com/projects/DSS/repos/dss_v1_nrts_etl/commits/ada28cb))
+
 v1.0.24 (2019-04-03)
 ====================
 
