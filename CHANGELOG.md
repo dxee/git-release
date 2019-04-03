@@ -1,4 +1,11 @@
 
+v1.0.28.aplha8 (2019-04-03)
+===========================
+
+
+## Reverts
+* **release** Revert test ([@blling](https://github.com/blling) in [fd2b349](https://github.com/dxee/git-release/commit/fd2b349))
+
 v1.0.28.aplha7 (2019-04-03)
 ===========================
 
