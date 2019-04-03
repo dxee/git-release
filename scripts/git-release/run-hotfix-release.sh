@@ -14,6 +14,10 @@ else
   exit 1
 fi
 
+usage() {
+  echo 'Usage: run-hotfix-release.sh [--nochglog] <-x <version>> <-n <version>>'
+}
+
 CHANGELOG="Y"
 HOTFIX_VERSION=""
 NEXT_VERSION=""
@@ -34,12 +38,17 @@ while [ "$1" != "" ]; do
     shift
     ;;
   *)
-    echo 'Usage: run-hotfix-release.sh [--nochglog] <-x <version>> <-n <version>>'
+    usage
     exit 2
     ;;
   esac
   shift
 done
+
+if [[ -z "$HOTFIX_VERSION" || -z "$NEXT_VERSION" ]]; then
+  usage
+  exit 1
+fi
 
 HOTFIX_BRANCH=$(format_hotfix_branch_name "${HOTFIX_VERSION}")
 HOTFIX_TAG=$(format_release_tag "${HOTFIX_VERSION}")

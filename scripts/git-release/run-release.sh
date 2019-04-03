@@ -11,6 +11,10 @@ else
   exit 1
 fi
 
+usage() {
+  echo 'Usage: run-release.sh [--nochglog] <-r <version>> <-n <version>>'
+}
+
 CHANGELOG="Y"
 RELEASE_VERSION=""
 NEXT_VERSION=""
@@ -29,12 +33,17 @@ while [ "$1" != "" ]; do
     shift
     ;;
   *)
-    echo 'Usage: run-release.sh [--nochglog] <-r <version>> <-n <version>>'
+    usage
     exit 2
     ;;
   esac
   shift
 done
+
+if [[ -z "$RELEASE_VERSION" || -z "$NEXT_VERSION" ]]; then
+  usage
+  exit 1
+fi
 
 RELEASE_BRANCH=$(format_release_branch_name "$RELEASE_VERSION")
 RELEASE_TAG=$(format_release_tag "${RELEASE_VERSION}")
@@ -60,7 +69,7 @@ fi
 git checkout -b "${RELEASE_BRANCH}" "${DEVELOP_BRANCH}"
 
 # commit release versions
-if [[ "${CHANGELOG}" = "Y" ]]; then
+if [[ "${CHANGELOG}" == "Y" ]]; then
   RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${NEXT_VERSION}")
 
   "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
