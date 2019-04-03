@@ -1,4 +1,15 @@
 
+v1.0.31.alpha1 (2019-04-03)
+===========================
+
+
+## Bug Fixes
+* **release** Remove unused function ([@blling](https://github.com/blling) in [d6866a0](https://github.com/dxee/git-release/commit/d6866a0))
+
+## Documentations
+* **release** Add hotfix start ([@blling](https://github.com/blling) in [b3dbf26](https://github.com/dxee/git-release/commit/b3dbf26))
+* Add some usage docs ([@blling](https://github.com/blling) in [ddb1e6e](https://github.com/dxee/git-release/commit/ddb1e6e))
+
 v1.0.30 (2019-04-03)
 ====================
 
