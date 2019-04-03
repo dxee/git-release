@@ -55,7 +55,7 @@ check_local_workspace_state "run-hotfix-release"
 git checkout "${HOTFIX_BRANCH}" && git pull "${REMOTE_REPO}"
 
 # add changelog
-if [ "${CHANGELOG}"="Y" ]; then
+if [[ "${CHANGELOG}"="Y" ]]; then
   HOTFIX_RELEASE_COMMIT_MESSAGE=$(get_release_hotfix_commit_message "${HOTFIX_VERSION}")
 
   "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${HOTFIX_TAG}" && cd "${GIT_REPO_DIR}"
