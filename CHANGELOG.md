@@ -1,4 +1,11 @@
 
+v1.0.28.aplha4 (2019-04-03)
+===========================
+
+
+## Chores
+* **release** Add separate changelog gen logic ([@blling](https://github.com/blling) in [7e5923e](https://github.com/dxee/git-release/commit/7e5923e))
+
 v1.0.28.aplha2 (2019-04-03)
 ===========================
 
