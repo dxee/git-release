@@ -14,7 +14,7 @@ else
   exit 1
 fi
 
-CHANGELOG=""
+CHANGELOG="Y"
 HOTFIX_VERSION=""
 NEXT_VERSION=""
 
@@ -22,7 +22,7 @@ unset RELEASE_VERSION
 
 while [ "$1" != "" ]; do
   case $1 in
-  -c | --chglog)
+  --nochglog)
     CHANGELOG="Y"
     ;;
   -x | --hotfixversion)
@@ -34,7 +34,7 @@ while [ "$1" != "" ]; do
     shift
     ;;
   *)
-    echo 'Usage: run-hotfix-release.sh [--chglog] <-x <version>> <-n <version>>'
+    echo 'Usage: run-hotfix-release.sh [--nochglog] <-x <version>> <-n <version>>'
     exit 2
     ;;
   esac
