@@ -167,21 +167,26 @@ create_content_changelog() {
             fi
 
             local commit_author="${tmp_content%%|*}"
-            commit_author=`map_user "$commit_author"`
+            commit_author=$(map_user "$commit_author")
             local commit_hash="${tmp_content#*|}"
-            local scope="${tmp_content%%\)*}"
+            local scope="${tmp_content%%:*}"
 
+            # Remove start space of commit message
+            local commit_msg="$(echo "${tmp_content#*:}" | sed 's/^[ \t]*//g')"
             commit_hash="${commit_hash%%|*}"
+            # If has scop
+            if [[ "$scope" =~ \)$ ]]; then
+                scope="${scope%%\)*}"
             scope="${scope#*\(}"
-            if [ "$scope" != "$tmp_content" ]; then
+
                 printf "* **%s** %s ([@%s]($GIT_LOG_AUTHOR%s) in [%s]($GIT_LOG_COMMITS%s))\n" \
                     "${scope#*\: }" \
-                    "${tmp_content#*\: }" \
+                    "${commit_msg}" \
                     "$commit_author" "$commit_author" \
                     "$commit_hash" "$commit_hash"
             else
                 printf "* %s ([@%s]($GIT_LOG_AUTHOR%s) in [%s]($GIT_LOG_COMMITS%s))\n" \
-                    "${tmp_content#*\: }" \
+                    "${commit_msg}" \
                     "$commit_author" "$commit_author" \
                     "$commit_hash" "$commit_hash"
             fi
@@ -201,7 +206,7 @@ create_content_changelog() {
         tmp_content="${tmp_other_comment#*|}"
         tmp_content="${tmp_content#*|}"
         commit_author="${tmp_other_comment%%|*}"
-        commit_author=`map_user "$commit_author"`
+        commit_author=$(map_user "$commit_author")
         commit_hash="${tmp_other_comment#*|}"
         commit_hash="${commit_hash%%|*}"
 
@@ -221,25 +226,24 @@ fetch_commit_range() {
         local commit_message="${commit_list#*|}"
         commit_message="${commit_message#*|}"
         # PR NO, eg: Merge pull request #1 in KKK/project from emp/feature1-dev to feature/feature1
-        local pr_no is_mr
+        local pr_no
         pr_no="${pr_no%% *}"
-        if ! echo "$commit_message"|grep -qe '^Merge pull request #' ; then
+        if [[ ! "$commit_message" =~ ^"Merge pull request #".* ]]; then
             if [[ "$(value_for_key_fake_assoc_array "pr_only" "${OPTION[*]}")" == true ]]; then
-                if echo "$commit_message"|grep -qe "^Merge branch '"; then
+                if [[ "$commit_message" =~ ^"Merge branch '".* ]]; then
                     continue
                 fi
             fi
             GROUP_LIST+=("$commit_list")
         else
             # PR NO, eg: Merge pull request #1 in KKK/project from emp/feature1-dev to feature/feature1
-            pr_no="${commit_list#*#}"
+            pr_no="${commit_message#*#}"
             pr_no="${pr_no%% *}"
-            is_mr="1"
         fi
 
         # Resolve body
         local commit_author="${commit_list%%|*}"
-        commit_author=`map_user "$commit_author"`
+        commit_author=$(map_user "$commit_author")
         local commit_hash="${commit_list#*|}"
         commit_hash="${commit_hash%%|*}"
         while read commit_comment_body; do
@@ -247,23 +251,21 @@ fetch_commit_range() {
                continue
             fi
 
-            local is_grouped_comment="$(is_grouped_comment "$commit_comment_body")"
-            if [ $is_grouped_comment -eq 1 ]; then
-                GROUP_LIST+=("$commit_author|$commit_hash|$commit_comment_body")
-            fi
-
             # Merge PR commit
-            if echo "$commit_message"|grep -qe '^Merge pull request #' ; then
+            if [[ "$commit_message" =~ ^"Merge pull request #".* ]]; then
                 # PR message, eg: feat: Add some feature
                 local pr_commit_msg="[PR#$pr_no]($GIT_LOG_PR$pr_no)"
-                if ! echo "$commit_comment_body"|grep -qe "^* commit '" ; then
+                if [[ ! "$commit_comment_body" =~ ^"* commit '".* ]]; then
                     pr_commit_msg="$commit_comment_body $pr_commit_msg"
                 fi
                 GROUP_LIST+=("$commit_author|$commit_hash|$pr_commit_msg")
+                break
             fi
 
-            if [ "0$is_mr"=="0" ]; then
-               break
+            # None merge pr
+            local is_grouped_comment="$(is_grouped_comment "$commit_comment_body")"
+            if [ $is_grouped_comment -eq 1 ]; then
+                GROUP_LIST+=("$commit_author|$commit_hash|$commit_comment_body")
             fi
         done <<<"$(
             git log -1 --pretty=format:%b $commit_hash
