@@ -42,6 +42,14 @@ else
     exit 1
 fi
 
+map_user() {
+    if [ "$1" = "Bing Fan" ]; then
+        echo "lovoop"
+    else
+        echo "$1"
+    fi
+}
+
 usage() {
     cat <<EOF
 usage: $PROGNAME options [file]
@@ -159,6 +167,7 @@ create_content_changelog() {
             fi
 
             local commit_author="${tmp_content%%|*}"
+            commit_author=`map_user "$commit_author"`
             local commit_hash="${tmp_content#*|}"
             local scope="${tmp_content%%\)*}"
 
@@ -192,6 +201,7 @@ create_content_changelog() {
         tmp_content="${tmp_other_comment#*|}"
         tmp_content="${tmp_content#*|}"
         commit_author="${tmp_other_comment%%|*}"
+        commit_author=`map_user "$commit_author"`
         commit_hash="${tmp_other_comment#*|}"
         commit_hash="${commit_hash%%|*}"
 
@@ -229,6 +239,7 @@ fetch_commit_range() {
 
         # Resolve body
         local commit_author="${commit_list%%|*}"
+        commit_author=`map_user "$commit_author"`
         local commit_hash="${commit_list#*|}"
         commit_hash="${commit_hash%%|*}"
         while read commit_comment_body; do
