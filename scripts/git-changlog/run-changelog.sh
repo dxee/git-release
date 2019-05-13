@@ -2,6 +2,7 @@ DEF_TAG_RECENT="n.n.n"
 GIT_LOG_OPTS=""
 GIT_LOG_AUTHOR="https://github.com/"
 GIT_LOG_COMMITS="https://github.com/dxee/git-release/commit/"
+GIT_LOG_PR="https://github.com/dxee/git-release/pull"
 GIT_LOG_FORMAT='%an|%h|%s'
 GIT_LOG_DATE_FORMAT='%Y-%m-%d %H:%M:%S'
 GIT_EDITOR="$(git var GIT_EDITOR)"
@@ -18,6 +19,28 @@ SUPPORTED_TYPES_LIST=(
     "BREAKING CHANGE:"
 )
 GROUP_LIST=()
+OPTION=(
+        "list_all:false"
+        "list_style:false"
+        "title_tag:$DEF_TAG_RECENT"
+        "start_tag:"
+        "start_commit:"
+        "final_tag:"
+        "output_file:"
+        "use_stdout:false"
+        "pr_only:false"
+        "prune_old:false"
+        "pro_release:false"
+    )
+
+SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -f "${SCRIPT_PATH}/../.common-util.sh" ]; then
+    source "${SCRIPT_PATH}/../.common-util.sh"
+else
+    echo 'Missing file .common-util.sh. Aborting'
+    exit 1
+fi
 
 usage() {
     cat <<EOF
@@ -54,106 +77,6 @@ log_error() {
     echo
     echo "ERROR: " "$@"
     echo
-}
-
-# set_value_for_key_fake_assoc_array()
-# /*!
-# @abstract Set value for key from a fake associative array
-# @discussion
-# Iterates over target_ary (an indexed array), searching for target_key, if the
-#   key is found its value is set to new_value otherwise the target_key and
-#   new_value are appended to the array.
-#
-#   The indexed array values must conform to this format:
-#     "key:value"
-#   Where key and value are separated by a single colon character.
-#
-#   Specify empty values as an empty, quoted string.
-#
-#   So-called "fake" associative arrays are useful for environments where the
-#   installed version of bash(1) precedes 4.0.
-# @param target_key Key to retrieve
-# @param new_value New or updated value
-# @param target_ary Indexed array to scan
-# @return Returns new array with updated key (status 0) or an empty array
-#   (status 1) on failure.
-# */
-set_value_for_key_fake_assoc_array() {
-    # parameter list supports empty arguments!
-    local target_key="$1"
-    shift
-    local new_value="$1"
-    shift
-    local target_ary=()
-    local defaultIFS="$IFS"
-    local IFS="$defaultIFS"
-    local found=false
-
-    IFS=$' ' target_ary=($1) IFS="$defaultIFS"
-
-    [[ -z "${target_key}" || "${#target_ary[@]}" -eq 0 ]] && echo "${value}" && return 1
-
-    local _target_ary_length="${#target_ary[@]}"
-    local i
-    for ((i = 0; i < "${_target_ary_length}"; i++)); do
-        local __val="${target_ary[$i]}"
-
-        if [[ "${__val%%:*}" == "${target_key}" ]]; then
-            target_ary[$i]="${__val%%:*}:${new_value}"
-            found=true
-            break
-        fi
-
-        unset __val
-    done
-    unset i _target_ary_length
-
-    # key not found, append
-    [[ "$found" == false ]] && target_ary+=("${target_key}:${new_value}")
-
-    printf "%s" "${target_ary[*]}"
-}
-
-# value_for_key_fake_assoc_array()
-# /*!
-# @abstract Fetch value for key from a fake associative array
-# @discussion
-# Iterates over target_ary (an indexed array), searching for target_key, if the
-#   key is found its value is returned.
-#
-#   The indexed array values must conform to this format:
-#     "key:value"
-#   Where key and value are separated by a single colon character.
-#
-#   So-called "fake" associative arrays are useful for environments where the
-#   installed version of bash(1) precedes 4.0.
-# @param target_key Key to retrieve
-# @param target_ary Indexed array to scan
-# @return Returns string containing value (status 0) or an empty string
-#   (status 1) on failure.
-# */
-value_for_key_fake_assoc_array() {
-    local target_key="$1"
-    local target_ary=()
-    local defaultIFS="$IFS"
-    local IFS="$defaultIFS"
-    local value=""
-
-    IFS=$' ' target_ary=($2) IFS="$defaultIFS"
-
-    [[ -z "${target_key}" || "${#target_ary[@]}" -eq 0 ]] && echo "${value}" && return 1
-
-    local t
-    for t in "${target_ary[@]}"; do
-        if [[ "${t%%:*}" == "${target_key}" ]]; then
-            value="${t#*:}"
-            break
-        fi
-    done
-    unset t
-
-    echo -e "${value}"
-    return 0
 }
 
 get_group_title() {
@@ -284,16 +207,51 @@ fetch_commit_range() {
     local final_tag="$3"
 
     while read commit_list; do
-        GROUP_LIST+=("$commit_list")
+        local commit_message="${commit_list#*|}"
+        commit_message="${commit_message#*|}"
+        # PR NO, eg: Merge pull request #1 in KKK/project from emp/feature1-dev to feature/feature1
+        local pr_no is_mr
+        pr_no="${pr_no%% *}"
+        if ! echo "$commit_message"|grep -qe '^Merge pull request #' ; then
+            if [[ "$(value_for_key_fake_assoc_array "pr_only" "${OPTION[*]}")" == true ]]; then
+                if echo "$commit_message"|grep -qe "^Merge branch '"; then
+                    continue
+                fi
+            fi
+            GROUP_LIST+=("$commit_list")
+        else
+            # PR NO, eg: Merge pull request #1 in KKK/project from emp/feature1-dev to feature/feature1
+            pr_no="${commit_list#*#}"
+            pr_no="${pr_no%% *}"
+            is_mr="1"
+        fi
 
         # Resolve body
         local commit_author="${commit_list%%|*}"
         local commit_hash="${commit_list#*|}"
         commit_hash="${commit_hash%%|*}"
         while read commit_comment_body; do
+            if [ -z "$commit_comment_body" ]; then
+               continue
+            fi
+
             local is_grouped_comment="$(is_grouped_comment "$commit_comment_body")"
             if [ $is_grouped_comment -eq 1 ]; then
                 GROUP_LIST+=("$commit_author|$commit_hash|$commit_comment_body")
+            fi
+
+            # Merge PR commit
+            if echo "$commit_message"|grep -qe '^Merge pull request #' ; then
+                # PR message, eg: feat: Add some feature
+                local pr_commit_msg="[PR#$pr_no]($GIT_LOG_PR$pr_no)"
+                if ! echo "$commit_comment_body"|grep -qe "^* commit '" ; then
+                    pr_commit_msg="$commit_comment_body $pr_commit_msg"
+                fi
+                GROUP_LIST+=("$commit_author|$commit_hash|$pr_commit_msg")
+            fi
+
+            if [ "0$is_mr"=="0" ]; then
+               break
             fi
         done <<<"$(
             git log -1 --pretty=format:%b $commit_hash
@@ -337,7 +295,7 @@ format_commit_pretty() {
     printf "\n%s\n" "$(fetch_commit_range "false" "$start_tag" "$final_tag")"
 }
 
-commitList() {
+commit_list() {
     # parameter list supports empty arguments!
     local list_all="${1:-false}"
     shift
@@ -406,7 +364,7 @@ commitList() {
         # strip out any additional tags pointing to same commit, remove tag label
         tag="${tag%%,*}"
         tag="${tag#tag: }"
-        if [[ "$(value_for_key_fake_assoc_array "pro_release" "${option[*]}")" == true && "$(grep -E "^v([0-9])+.([0-9])+.([0-9])+$" <<<"${tag}")" != "${tag}" ]]; then
+        if [[ "$(value_for_key_fake_assoc_array "pro_release" "${OPTION[*]}")" == true && "$(grep -E "^v([0-9])+.([0-9])+.([0-9])+$" <<<"${tag}")" != "${tag}" ]]; then
             continue
         fi
         tags_list+=("${tag}:${ref}=>${date}")
@@ -512,7 +470,7 @@ commit_list_plain() {
     local final_tag="$3"
     local start_commit="$4"
 
-    commitList "$list_all" "" "$start_tag" "$final_tag" "true" "$start_commit"
+    commit_list "$list_all" "" "$start_tag" "$final_tag" "true" "$start_commit"
 }
 
 commit_list_pretty() {
@@ -523,7 +481,7 @@ commit_list_pretty() {
     local start_commit="$5"
     local title_date="$(date +'%Y-%m-%d')"
 
-    commitList "$list_all" "$title_tag" "$start_tag" "$final_tag" "false" \
+    commit_list "$list_all" "$title_tag" "$start_tag" "$final_tag" "false" \
         "$start_commit"
 }
 
@@ -571,19 +529,6 @@ main() {
     local start_tag="null"
     local final_tag="null"
 
-    local option=(
-        "list_all:false"
-        "list_style:false"
-        "title_tag:$DEF_TAG_RECENT"
-        "start_tag:"
-        "start_commit:"
-        "final_tag:"
-        "output_file:"
-        "use_stdout:false"
-        "prune_old:false"
-        "pro_release:false"
-    )
-
     #
     # We work chronologically backwards from NOW towards start_tag where NOW also
     # includes the most-recent (un-tagged) commits. If no start_tag has been
@@ -597,29 +542,29 @@ main() {
     while [ "$1" != "" ]; do
         case $1 in
         -a | --all)
-            option=($(set_value_for_key_fake_assoc_array "list_all" true "${option[*]}"))
+            OPTION=($(set_value_for_key_fake_assoc_array "list_all" true "${OPTION[*]}"))
             ;;
         -l | --list)
-            option=($(set_value_for_key_fake_assoc_array "list_style" true "${option[*]}"))
+            OPTION=($(set_value_for_key_fake_assoc_array "list_style" true "${OPTION[*]}"))
             ;;
         -t | --tag)
-            option=($(set_value_for_key_fake_assoc_array "title_tag" "$2" "${option[*]}"))
+            OPTION=($(set_value_for_key_fake_assoc_array "title_tag" "$2" "${OPTION[*]}"))
             shift
             ;;
         -f | --final-tag)
-            option=($(set_value_for_key_fake_assoc_array "final_tag" "$2" "${option[*]}"))
+            OPTION=($(set_value_for_key_fake_assoc_array "final_tag" "$2" "${OPTION[*]}"))
             shift
             ;;
         -s | --start-tag)
-            option=($(set_value_for_key_fake_assoc_array "start_tag" "$2" "${option[*]}"))
+            OPTION=($(set_value_for_key_fake_assoc_array "start_tag" "$2" "${OPTION[*]}"))
             shift
             ;;
         --start-commit)
-            option=($(set_value_for_key_fake_assoc_array "start_commit" "$2" "${option[*]}"))
+            OPTION=($(set_value_for_key_fake_assoc_array "start_commit" "$2" "${OPTION[*]}"))
             shift
             ;;
         -r | --pro-release)
-            option=($(set_value_for_key_fake_assoc_array "pro_release" true "${option[*]}"))
+            OPTION=($(set_value_for_key_fake_assoc_array "pro_release" true "${OPTION[*]}"))
             ;;
         -n | --no-merges)
             GIT_LOG_OPTS='--no-merges'
@@ -627,26 +572,29 @@ main() {
         -m | --merges-only)
             GIT_LOG_OPTS='--merges'
             ;;
+        -o | --pr-only)
+            OPTION=($(set_value_for_key_fake_assoc_array "pr_only" true "${OPTION[*]}"))
+            ;;
         -p | --prune-old)
-            option=($(set_value_for_key_fake_assoc_array "prune_old" true "${option[*]}"))
+            OPTION=($(set_value_for_key_fake_assoc_array "prune_old" true "${OPTION[*]}"))
             ;;
         -x | --stdout)
-            option=($(set_value_for_key_fake_assoc_array "use_stdout" true "${option[*]}"))
+            OPTION=($(set_value_for_key_fake_assoc_array "use_stdout" true "${OPTION[*]}"))
             ;;
         -h | ? | help | --help)
             usage
             exit 1
             ;;
         *)
-            [[ "${1:0:1}" == '-' ]] && log_error "Invalid option: $1" && usage && exit 1
-            option=($(set_value_for_key_fake_assoc_array "output_file" "$1" "${option[*]}"))
+            [[ "${1:0:1}" == '-' ]] && log_error "Invalid OPTION: $1" && usage && exit 1
+            OPTION=($(set_value_for_key_fake_assoc_array "output_file" "$1" "${OPTION[*]}"))
             ;;
         esac
         shift
     done
 
-    local tag="$(value_for_key_fake_assoc_array "start_tag" "${option[*]}")"
-    local start_commit="$(value_for_key_fake_assoc_array "start_commit" "${option[*]}")"
+    local tag="$(value_for_key_fake_assoc_array "start_tag" "${OPTION[*]}")"
+    local start_commit="$(value_for_key_fake_assoc_array "start_commit" "${OPTION[*]}")"
 
     if [[ -n "$start_commit" ]]; then
         if [[ -n "${tag}" ]]; then
@@ -683,7 +631,7 @@ main() {
     fi
     unset tag
 
-    local tag="$(value_for_key_fake_assoc_array "final_tag" "${option[*]}")"
+    local tag="$(value_for_key_fake_assoc_array "final_tag" "${OPTION[*]}")"
     if [[ -n "${tag}" ]]; then
         final_tag="$(git describe --tags --abbrev=0 "${tag}" 2>/dev/null)"
         if [[ -z "$final_tag" ]]; then
@@ -697,18 +645,18 @@ main() {
     # generate changelog
     #
     local tmpfile="$(git_extra_mktemp)"
-    local changelog="$(value_for_key_fake_assoc_array "output_file" "${option[*]}")"
-    local title_tag="$(value_for_key_fake_assoc_array "title_tag" "${option[*]}")"
+    local changelog="$(value_for_key_fake_assoc_array "output_file" "${OPTION[*]}")"
+    local title_tag="$(value_for_key_fake_assoc_array "title_tag" "${OPTION[*]}")"
 
-    if [[ "$(value_for_key_fake_assoc_array "list_style" "${option[*]}")" == true ]]; then
-        if [[ "$(value_for_key_fake_assoc_array "list_all" "${option[*]}")" == true ]]; then
+    if [[ "$(value_for_key_fake_assoc_array "list_style" "${OPTION[*]}")" == true ]]; then
+        if [[ "$(value_for_key_fake_assoc_array "list_all" "${OPTION[*]}")" == true ]]; then
             commit_list_plain "true" >>"$tmpfile"
         else
             commit_list_plain "false" "$start_tag" "$final_tag" \
                 "$start_commit" >>"$tmpfile"
         fi
     else
-        if [[ "$(value_for_key_fake_assoc_array "list_all" "${option[*]}")" == true ]]; then
+        if [[ "$(value_for_key_fake_assoc_array "list_all" "${OPTION[*]}")" == true ]]; then
             commit_list_pretty "true" "$title_tag" >>"$tmpfile"
         else
             commit_list_pretty "false" "$title_tag" "$start_tag" "$final_tag" \
@@ -724,12 +672,12 @@ main() {
     fi
 
     # append existing changelog?
-    if [[ -f "$changelog" && "$(value_for_key_fake_assoc_array "prune_old" "${option[*]}")" == false ]]; then
+    if [[ -f "$changelog" && "$(value_for_key_fake_assoc_array "prune_old" "${OPTION[*]}")" == false ]]; then
         cat "$changelog" >>"$tmpfile"
     fi
 
     # output file to stdout or move into place
-    if [[ "$(value_for_key_fake_assoc_array "use_stdout" "${option[*]}")" == true ]]; then
+    if [[ "$(value_for_key_fake_assoc_array "use_stdout" "${OPTION[*]}")" == true ]]; then
         cat "$tmpfile"
         rm -f "$tmpfile"
     else
