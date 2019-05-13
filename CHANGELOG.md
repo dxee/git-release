@@ -1,4 +1,18 @@
 
+vv2.0.0-alpha.7 (2019-05-13)
+============================
+
+
+## Improvements
+* PR message support (#6) ([@lovoop](https://github.com/lovoop) in [cd74d40](https://github.com/dxee/git-release/commit/cd74d40))
+* Add pr support ([@lovoop](https://github.com/lovoop) in [d47fe13](https://github.com/dxee/git-release/commit/d47fe13))
+
+## Bug Fixes
+* Tweak (#5) ([@lovoop](https://github.com/lovoop) in [249a062](https://github.com/dxee/git-release/commit/249a062))
+
+## Others
+* Feat: Add a usecase for `Merge pull request #`. (#1) (#3) ([@lovoop](https://github.com/lovoop) in [d47fe13](https://github.com/dxee/git-release/commit/d47fe13))
+
 v1.0.33 (2019-04-03)
 ====================
 
