@@ -63,6 +63,7 @@ OPTIONS:
       --start-commit        Like --start-tag but use commit instead of tag
   -n, --no-merges           Suppress commits from merged branches
   -m, --merges-only         Only uses merge commits (uses both subject and body of commit)
+  -o, --pr-only             If -m is on, only use PR for log                            
   -p, --prune-old           Replace existing Changelog entirely with new content
   -x, --stdout              Write output to stdout instead of to a Changelog file
   -u, --author-t
