@@ -2,6 +2,7 @@ DEF_TAG_RECENT="n.n.n"
 GIT_LOG_OPTS=""
 GIT_LOG_AUTHOR="https://github.com/"
 GIT_LOG_COMMITS="https://github.com/dxee/git-release/commit/"
+GIT_LOG_PR="https://github.com/dxee/git-release/pull"
 GIT_LOG_FORMAT='%an|%h|%s'
 GIT_LOG_DATE_FORMAT='%Y-%m-%d %H:%M:%S'
 GIT_EDITOR="$(git var GIT_EDITOR)"
@@ -22,10 +23,10 @@ GROUP_LIST=()
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ -f "${SCRIPT_PATH}/../.common-util.sh" ]; then
-  source "${SCRIPT_PATH}/../.common-util.sh"
+    source "${SCRIPT_PATH}/../.common-util.sh"
 else
-  echo 'Missing file .common-util.sh. Aborting'
-  exit 1
+    echo 'Missing file .common-util.sh. Aborting'
+    exit 1
 fi
 
 usage() {
@@ -193,7 +194,9 @@ fetch_commit_range() {
     local final_tag="$3"
 
     while read commit_list; do
-        GROUP_LIST+=("$commit_list")
+        if ! grep -qe '^Merge pull request #'; then
+            GROUP_LIST+=("$commit_list")
+        fi
 
         # Resolve body
         local commit_author="${commit_list%%|*}"
@@ -202,6 +205,17 @@ fetch_commit_range() {
         while read commit_comment_body; do
             local is_grouped_comment="$(is_grouped_comment "$commit_comment_body")"
             if [ $is_grouped_comment -eq 1 ]; then
+                GROUP_LIST+=("$commit_author|$commit_hash|$commit_comment_body")
+            fi
+            
+            # Merge PR commit
+            if grep -qe '^Merge pull request #'; then
+                # PR NO, eg: Merge pull request #1 in KKK/project from emp/feature1-dev to feature/feature1
+                local pr_no="${commit_list#*#}"
+                pr_no="${pr_no%% *}"
+                # PR message, eg: feat: Add some feature
+                local pr_commit_msg=`echo "$commit_comment_body"|sed -n "1d"`
+                pr_commit_msg="$pr_commit_msg [$GIT_LOG_PR/$pr_no]"
                 GROUP_LIST+=("$commit_author|$commit_hash|$commit_comment_body")
             fi
         done <<<"$(
