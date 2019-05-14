@@ -73,9 +73,9 @@ if [[ "${CHANGELOG}" == "Y" ]]; then
   RELEASE_COMMIT_MESSAGE=$(get_release_commit_message "${NEXT_VERSION}")
 
   if grep -qE "^([0-9])+.([0-9])+.([0-9])+$" <<<"${NEXT_VERSION}"; then
-    "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -r -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
+    "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -r -o -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
   else
-    "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
+    "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -o -t "${RELEASE_TAG}" && cd "${GIT_REPO_DIR}"
   fi
   git add .
   git commit -am "${RELEASE_COMMIT_MESSAGE}"

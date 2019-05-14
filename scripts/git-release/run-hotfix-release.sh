@@ -67,9 +67,9 @@ git checkout "${HOTFIX_BRANCH}" && git pull "${REMOTE_REPO}"
 if [[ "${CHANGELOG}" == "Y" ]]; then
   HOTFIX_RELEASE_COMMIT_MESSAGE=$(get_release_hotfix_commit_message "${HOTFIX_VERSION}")
   if grep -qE "^([0-9])+.([0-9])+.([0-9])+$" <<<"${HOTFIX_VERSION}"; then
-    "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -r -n -t "${HOTFIX_TAG}" && cd "${GIT_REPO_DIR}"
+    "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -r -o -t "${HOTFIX_TAG}" && cd "${GIT_REPO_DIR}"
   else
-    "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -n -t "${HOTFIX_TAG}" && cd "${GIT_REPO_DIR}"
+    "${GIT_REPO_DIR}"/scripts/git-changlog/run-changelog.sh -o -t "${HOTFIX_TAG}" && cd "${GIT_REPO_DIR}"
   fi
   git add .
   git commit -m "${HOTFIX_RELEASE_COMMIT_MESSAGE}"

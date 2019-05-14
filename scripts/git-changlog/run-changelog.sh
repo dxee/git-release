@@ -71,11 +71,11 @@ OPTIONS:
       --start-commit        Like --start-tag but use commit instead of tag
   -n, --no-merges           Suppress commits from merged branches
   -m, --merges-only         Only uses merge commits (uses both subject and body of commit)
-  -o, --pr-only             If -m is on, only use PR for log                            
+  -o, --pr-only             Only use PR merge request for log                            
   -p, --prune-old           Replace existing Changelog entirely with new content
   -x, --stdout              Write output to stdout instead of to a Changelog file
   -u, --author-t
-  -p, --pro-release         Production release
+  -r, --pro-release         Production release
   -h, --help, ?             Show this message
 EOF
 }
@@ -246,6 +246,7 @@ fetch_commit_range() {
         commit_author=$(map_user "$commit_author")
         local commit_hash="${commit_list#*|}"
         commit_hash="${commit_hash%%|*}"
+        local commit_comment_body_row=0
         while read commit_comment_body; do
             if [ -z "$commit_comment_body" ]; then
                 continue
@@ -254,16 +255,16 @@ fetch_commit_range() {
             # Merge PR commit
             if [[ "$commit_message" =~ ^"Merge pull request #".* ]]; then
                 # PR message, eg: feat: Add some feature
-                local pr_commit_msg="[PR#$pr_no]($GIT_LOG_PR$pr_no)"
-                local is_squashed_commit=1
-                if [[ ! "$commit_comment_body" =~ ^"* commit '".* ]]; then
-                    pr_commit_msg="$commit_comment_body $pr_commit_msg"
-                    is_squashed_commit=0
-                fi
-                GROUP_LIST+=("$commit_author|$commit_hash|$pr_commit_msg")
-                if [ "$is_squashed_commit" -eq 1 ]; then
+                local pr_commit_msg="[[PR#$pr_no]]($GIT_LOG_PR$pr_no)"
+                if [[ "$commit_comment_body" =~ ^"* commit '".* ]] || [[ "$commit_comment_body" =~ ^"Squashed commit of the following:".* ]]; then
+                    # show PR#* only
+                    if [ $commit_comment_body_row -eq 0 ]; then
+                        GROUP_LIST+=("$commit_author|$commit_hash|$pr_commit_msg")
+                    fi
                     break
                 fi
+                commit_comment_body="$commit_comment_body $pr_commit_msg"
+                commit_comment_body_row=$(($commit_comment_body_row+1))
             fi
 
             # None merge pr
