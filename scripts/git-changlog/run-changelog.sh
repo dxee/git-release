@@ -20,18 +20,18 @@ SUPPORTED_TYPES_LIST=(
 )
 GROUP_LIST=()
 OPTION=(
-        "list_all:false"
-        "list_style:false"
-        "title_tag:$DEF_TAG_RECENT"
-        "start_tag:"
-        "start_commit:"
-        "final_tag:"
-        "output_file:"
-        "use_stdout:false"
-        "pr_only:false"
-        "prune_old:false"
-        "pro_release:false"
-    )
+    "list_all:false"
+    "list_style:false"
+    "title_tag:$DEF_TAG_RECENT"
+    "start_tag:"
+    "start_commit:"
+    "final_tag:"
+    "output_file:"
+    "use_stdout:false"
+    "pr_only:false"
+    "prune_old:false"
+    "pro_release:false"
+)
 
 SCRIPT_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -177,7 +177,7 @@ create_content_changelog() {
             # If has scop
             if [[ "$scope" =~ \)$ ]]; then
                 scope="${scope%%\)*}"
-            scope="${scope#*\(}"
+                scope="${scope#*\(}"
 
                 printf "* **%s** %s ([@%s]($GIT_LOG_AUTHOR%s) in [%s]($GIT_LOG_COMMITS%s))\n" \
                     "${scope#*\: }" \
@@ -248,18 +248,22 @@ fetch_commit_range() {
         commit_hash="${commit_hash%%|*}"
         while read commit_comment_body; do
             if [ -z "$commit_comment_body" ]; then
-               continue
+                continue
             fi
 
             # Merge PR commit
             if [[ "$commit_message" =~ ^"Merge pull request #".* ]]; then
                 # PR message, eg: feat: Add some feature
                 local pr_commit_msg="[PR#$pr_no]($GIT_LOG_PR$pr_no)"
+                local is_squashed_commit=1
                 if [[ ! "$commit_comment_body" =~ ^"* commit '".* ]]; then
                     pr_commit_msg="$commit_comment_body $pr_commit_msg"
+                    is_squashed_commit=0
                 fi
                 GROUP_LIST+=("$commit_author|$commit_hash|$pr_commit_msg")
-                break
+                if [ "$is_squashed_commit" -eq 1 ]; then
+                    break
+                fi
             fi
 
             # None merge pr
