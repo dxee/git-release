@@ -1,6 +1,12 @@
 # git-release
 
+## Installation
+Copy `lib`,`git-changelog`,`git-release` to your local git repository, you must keep the structure the same.
+
 ## Usage
+### Prepare config
+Change `git-changelog/config.sh` to your own config value.
+
 ### Production release
 eg:
 ```
