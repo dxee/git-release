@@ -27,7 +27,7 @@ unset RELEASE_VERSION
 while [ "$1" != "" ]; do
   case $1 in
   --nochglog)
-    CHANGELOG="Y"
+    CHANGELOG="N"
     ;;
   -x | --hotfixversion)
     HOTFIX_VERSION="$2"
